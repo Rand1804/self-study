@@ -10,7 +10,7 @@ int tsub_ok(int x, int y) {
     int sub = x - y;
     int pos_over = x > 0 && y < 0 && sub < 0;
     int neg_over = x < 0 && y > 0 && sub > 0;
-
+    
     res = res && !(pos_over || neg_over);
 
     return res;
