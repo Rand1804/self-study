@@ -175,6 +175,7 @@ objdump -d mstore.o
 | %rsi | 第二个参数寄存器       |
 | %rsp | 栈顶指针               |
 | %rip | 当前正在执行指令的地址 |
+| %rax | 函数返回值             |
 
 
 
@@ -217,3 +218,4 @@ overflflow—either negative or positive.
 ![image-20220714172605181](computer_system.assets/image-20220714172605181.png)
 
 ![image-20220714172908983](computer_system.assets/image-20220714172908983.png)
+
