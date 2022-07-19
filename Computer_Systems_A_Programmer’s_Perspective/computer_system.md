@@ -219,3 +219,4 @@ overflflow—either negative or positive.
 
 ![image-20220714172908983](computer_system.assets/image-20220714172908983.png)
 
+![image-20220718092459274](computer_system.assets/image-20220718092459274.png)

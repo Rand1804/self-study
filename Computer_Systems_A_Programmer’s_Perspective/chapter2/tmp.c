@@ -1,17 +1,18 @@
 #include <stdio.h>
 
-// xp in %rdi  yp in %rsi,  zp in %rdx
-void decode1(short z, short y, short x) {
-    short val = z + y - x;
-    if (z > 5) {
-        if (y > 2) {
-            val = x / z;
-        else
-            val = x / y;
-        }
-    } else if (z < 3)
-        val = z / y;
-    return val;
+// x in %rdi  y in %rsi, val in %rbx
+int decode1(int n) {
+    int result = 1;
+    do {
+        result *= n;
+        n = n - 1;
+    } while (n > 1);
+    return result;
+}
+
+int main() {
+    int res = decode1(13);
+    printf("%d", res);
 }
 
 /* 
