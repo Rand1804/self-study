@@ -220,3 +220,41 @@ overflflow—either negative or positive.
 ![image-20220714172908983](computer_system.assets/image-20220714172908983.png)
 
 ![image-20220718092459274](computer_system.assets/image-20220718092459274.png)
+
+## 3.7 procedures
+
+![image-20220719175800564](computer_system.assets/image-20220719175800564.png)
+
+![image-20220720104719817](computer_system.assets/image-20220720104719817.png)
+
+![image-20220721132139932](computer_system.assets/image-20220721132139932.png)
+
+### call
+
+- 栈顶指针 - 8
+- 将此调用之后的指令地址写入栈顶部
+- 跳转到目标函数的起始地址
+
+### ret
+
+- 读取
+
+**integers or pointers**
+
+![image-20220720110254808](computer_system.assets/image-20220720110254808.png)
+
+![image-20220720150342404](computer_system.assets/image-20220720150342404.png)
+
+![image-20220721151134044](computer_system.assets/image-20220721151134044.png)
+
+![image-20220722142734773](computer_system.assets/image-20220722142734773.png)
+
+| 指令           | 说明           |
+| -------------- | -------------- |
+| break          | 打断点         |
+| run            | 运行           |
+| info registers | 显示寄存器信息 |
+| print $rsp     | 输出栈指针     |
+| stepi          | 一步一步       |
+
+![image-20220722165059049](computer_system.assets/image-20220722165059049.png)

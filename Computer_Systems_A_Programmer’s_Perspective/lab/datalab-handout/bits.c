@@ -265,7 +265,21 @@ int logicalNeg(int x) {
  *  Rating: 4
  */
 int howManyBits(int x) {
-	
+	// x >= 0 ? x : ~x
+	int flag = x >> 31;
+	x = (~flag & x) | (flag & ~x);
+	int bit_16 = !!(x >> 16) << 4;
+	x = x >> bit_16;
+	int bit_8 = !!(x >> 8) << 3;
+	x = x >> bit_8;
+	int bit_4 = !!(x >> 4) << 2;
+	x = x >> bit_4;
+	int bit_2 = !!(x >> 2) << 1;
+	x = x >> bit_2;
+	int bit_1 = !!(x >> 1);
+	x = x >> bit_1;
+	int bit_0 = x;
+	return bit_16 + bit_8 + bit_4 + bit_2 + bit_1 + bit_0 + 1;
 }
 //float
 /* 
@@ -280,7 +294,19 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned floatScale2(unsigned uf) {
-  return 2;
+	int s = (uf >> 31) & 0x1;
+	int exp = (uf >> 23) & 0xff;
+	int frac = uf & 0x7fffff;
+	// inifity or not an number
+	if (exp == 0xff)
+		return uf;
+	// denormalize
+	if (exp == 0x00){
+		frac <<= 1;
+		return (s << 31) | frac;
+	}
+	exp++;
+	return (s << 31) | (exp << 23) | frac;
 }
 /* 
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
@@ -295,7 +321,36 @@ unsigned floatScale2(unsigned uf) {
  *   Rating: 4
  */
 int floatFloat2Int(unsigned uf) {
-  return 2;
+	// s, exp, frac
+   unsigned s = (uf >> 31) & 0x1;
+   unsigned exp = (uf >> 23) & 0xff;
+   unsigned frac = uf & 0x7fffff;
+   // inifity or not an number
+   if (exp == 0xff)
+      return 0x80000000u;
+   // denormalize
+   if (exp == 0x00) {
+      return 0;
+   }
+   // normalize
+   frac |= 0x800000;
+   int E = exp - 127;
+   if (E < 0) {
+      return 0;
+   }
+   else if (E > 31) {
+      return 1 << 31;
+   }
+   else if (E >= 23)
+   {
+      frac <<= (E - 23);
+   }
+   else {
+      frac >>= (23 - E);
+   }
+   if (s)
+      return ~frac + 1;
+   return frac;
 }
 /* 
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x
@@ -311,5 +366,12 @@ int floatFloat2Int(unsigned uf) {
  *   Rating: 4
  */
 unsigned floatPower2(int x) {
-    return 2;
+   if (x < -127) return 0;
+   else if (x > 128) {
+      return 0x7f800000;
+   }
+   else {
+      int exp = x + 127;
+      return exp << 23;
+   }
 }
