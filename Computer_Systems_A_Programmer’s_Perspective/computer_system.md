@@ -1,4 +1,4 @@
-# C语言基础
+# C语言拾遗
 
 C和指针
 
@@ -249,12 +249,28 @@ overflflow—either negative or positive.
 
 ![image-20220722142734773](computer_system.assets/image-20220722142734773.png)
 
-| 指令           | 说明           |
-| -------------- | -------------- |
-| break          | 打断点         |
-| run            | 运行           |
-| info registers | 显示寄存器信息 |
-| print $rsp     | 输出栈指针     |
-| stepi          | 一步一步       |
+| 指令           | 说明                   |
+| -------------- | ---------------------- |
+| break          | 打断点                 |
+| run            | 运行                   |
+| finish         | 运行直到当前代码块结束 |
+| info registers | 显示寄存器信息         |
+| print $rsp     | 输出栈指针             |
+| stepi          | 逐个指令               |
+| layout asm     | 布局汇编(图形界面_     |
 
 ![image-20220722165059049](computer_system.assets/image-20220722165059049.png)
+
+![image-20220727172929243](computer_system.assets/image-20220727172929243.png)
+
+![image-20220728164342248](computer_system.assets/image-20220728164342248.png)
+
+> **目前64位机器会限制只使用47位的地址**
+
+**what that means is if you tried to access any memory via the stack pointer, that was outside of the range of this 8 megabyte range you'd get a segmentation fault**
+
+### three protections
+
+- to randomize the stack position
+- to make the stack not exectable
+- use a stack canary or other mechanisms to detect a potential buffer overflow

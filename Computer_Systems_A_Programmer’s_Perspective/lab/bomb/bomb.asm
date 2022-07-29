@@ -343,7 +343,7 @@ Disassembly of section .text:
   400ede:	90                   	nop
   400edf:	90                   	nop
 
-0000000000400ee0 <phase_1>:
+0000000000400ee0 ph<ase_1>:
   400ee0:	48 83 ec 08          	sub    $0x8,%rsp
   400ee4:	be 00 24 40 00       	mov    $0x402400,%esi
   400ee9:	e8 4a 04 00 00       	callq  401338 <strings_not_equal>
