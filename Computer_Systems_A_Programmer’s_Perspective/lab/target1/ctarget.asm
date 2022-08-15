@@ -873,7 +873,7 @@ Disassembly of section .text:
   4018fa:	53                   	push   %rbx
   4018fb:	48 89 fb             	mov    %rdi,%rbx
   4018fe:	c7 05 d4 2b 20 00 03 	movl   $0x3,0x202bd4(%rip)        # 6044dc <vlevel>
-  401905:	00 00 00 c 
+  401905:	00 00 00 
   401908:	48 89 fe             	mov    %rdi,%rsi
   40190b:	8b 3d d3 2b 20 00    	mov    0x202bd3(%rip),%edi        # 6044e4 <cookie>
   401911:	e8 36 ff ff ff       	callq  40184c <hexmatch>

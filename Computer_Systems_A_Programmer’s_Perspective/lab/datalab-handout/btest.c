@@ -169,6 +169,7 @@ static int gen_vals(int test_vals[], int min, int max, int test_range, int arg)
 	    test_vals[test_count++] = sign | (smallest_norm + i);
 	    test_vals[test_count++] = sign | (smallest_norm - i);
 	    
+		
 	    /* Region around one */
 	    test_vals[test_count++] = one + i;
 	    test_vals[test_count++] = one - i;
@@ -580,4 +581,11 @@ int main(int argc, char *argv[])
     run_tests();
 
     return 0;
+}
+
+int main() {
+	
+	for (int i = 2;i < 10;i++) {
+		
+	}
 }

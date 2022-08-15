@@ -274,3 +274,138 @@ overflflow—either negative or positive.
 - to randomize the stack position
 - to make the stack not exectable
 - use a stack canary or other mechanisms to detect a potential buffer overflow
+
+![image-20220801130840048](computer_system.assets/image-20220801130840048.png)
+
+![image-20220801131637554](computer_system.assets/image-20220801131637554.png)
+
+![image-20220801132739934](computer_system.assets/image-20220801132739934.png)
+
+![image-20220801134302284](computer_system.assets/image-20220801134302284.png)
+
+# Chapter 4
+
+![image-20220802170717676](computer_system.assets/image-20220802170717676.png)
+
+![image-20220802171320954](computer_system.assets/image-20220802171320954.png)
+
+![image-20220802171350006](computer_system.assets/image-20220802171350006.png)
+
+![image-20220802174839875](computer_system.assets/image-20220802174839875.png)
+
+![image-20220802110326631](computer_system.assets/image-20220802110326631.png)
+
+![image-20220803114505539](computer_system.assets/image-20220803114505539.png)
+
+![image-20220803114518921](computer_system.assets/image-20220803114518921.png)
+
+![image-20220803115637868](computer_system.assets/image-20220803115637868.png)
+
+![image-20220803115800472](computer_system.assets/image-20220803115800472.png)
+
+![image-20220803133809677](computer_system.assets/image-20220803133809677.png)
+
+![image-20220803134056708](computer_system.assets/image-20220803134056708.png)
+
+![image-20220803153039950](computer_system.assets/image-20220803153039950.png)
+
+![image-20220803154226336](computer_system.assets/image-20220803154226336.png)
+
+# Chapter 5
+
+- 减少不必要的函数调用
+- 消除不必要的内存引用
+- 多路并行循环展开
+- 重新结合变换
+
+![image-20220804172428824](computer_system.assets/image-20220804172428824.png)
+
+# Chapter 6
+
+![image-20220808100927441](computer_system.assets/image-20220808100927441.png)
+
+## Random Access Memory(随机访问存储器)
+
+- Static RAM(静态RAM, SRAM)   ------- Cache memory
+  - 每个bit位的信息存储在一个**双稳态**的存储单元内,每个存储单眼需要六个晶体管来实现
+- Dynamic RAM(动态RAM, DRAM) --------- Main memory/ frame buffers
+  - 每个bit位的存储对应一个**电容**和一个晶体管
+
+![image-20220808105726131](computer_system.assets/image-20220808105726131.png)
+
+>  二维阵列减少了地址引脚数量,增加了访问时间
+
+![image-20220808110207946](computer_system.assets/image-20220808110207946.png)
+
+### DDR3,DDR4,LPDDR4
+
+DDR SDRM - Double Data-Rate Synchronous DRAM (双倍速率同步动态随机存储器)
+
+DDR4 --------> 预取缓冲区16bit
+
+DDR4 ---------> 预取缓冲区8bit
+
+LP -------------> Low Power
+
+## Disk 
+
+- 机械磁盘(也称旋转磁盘)
+
+![image-20220808111955274](computer_system.assets/image-20220808111955274.png)
+
+![image-20220808112049168](computer_system.assets/image-20220808112049168.png)
+
+![image-20220808112203938](computer_system.assets/image-20220808112203938.png)
+
+![image-20220808113405499](computer_system.assets/image-20220808113405499.png)
+
+![image-20220808113750218](computer_system.assets/image-20220808113750218.png)
+
+## Solid State Disk
+
+![image-20220808114042923](computer_system.assets/image-20220808114042923.png)
+
+![image-20220808135313564](computer_system.assets/image-20220808135313564.png)
+
+![image-20220808135539081](computer_system.assets/image-20220808135539081.png)
+
+![image-20220808140052504](computer_system.assets/image-20220808140052504.png)
+
+![image-20220808140552521](computer_system.assets/image-20220808140552521.png)
+
+## Locality
+
+### temporal locality
+
+时间局部性
+
+### spatial locality
+
+空间局部性
+
+![image-20220810101534088](computer_system.assets/image-20220810101534088.png)
+
+![image-20220808152824617](computer_system.assets/image-20220808152824617.png)
+
+![image-20220810101735719](computer_system.assets/image-20220810101735719.png)
+
+### 缓存是否命中确认
+
+- (1) set selection(组选择)
+- (2) line matching(行匹配)
+- (3) word extraction(字抽取)
+
+![image-20220810103825072](computer_system.assets/image-20220810103825072.png)
+
+### Issues with Writes
+
+- Write Hit(写命中)
+  - write-through(写穿透)
+  - write-back(写回)
+- Write Miss(写不命中)
+  - write-allocate(写分配) :先把目标数据所在的块从内存(更低一级cache)加载到cache中,然后再往cache中写
+  - no-write-allocate(写不分配) :绕开cache,直接把要写的内容写到内存(更低一级cache)中
+
+通常情况下写分配与写回,写不分配与写穿透搭配使用
+
+![image-20220810133323812](computer_system.assets/image-20220810133323812.png)

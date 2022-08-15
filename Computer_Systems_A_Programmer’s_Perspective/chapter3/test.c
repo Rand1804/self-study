@@ -16,7 +16,8 @@ short test(struct ACE *ptr) {
 
 // 0 16  24   st->s.x    &(st->s.x) 
 
-/*  short   movw    8(%rdi), %ax
+/*  
+    short   movw    8(%rdi), %ax
             movw    %ax, (rsi)
     char *  leaq    10(%rdi), %rax
             movq    %rax, (%rsi)
@@ -28,3 +29,10 @@ short test(struct ACE *ptr) {
             movb    (%rax), %al
 
 */
+
+
+
+/*
+    n   s1      s2      p       e1  e2
+    5   2065    2017    2024    1   7
+    6   2064    2000    2000    16   0

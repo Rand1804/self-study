@@ -11,6 +11,10 @@
 
 ## 计算机基础:
 
-推荐课程:[15-213:Introduction to Computer Systems,Sep.1,2015](https://www.youtube.com/watch?v=4CpHpFu_KYM&list=PLQ5cMeVTtiJkUilq92Cw9D6RhAJhPJ_JX)
+推荐课程:[15-213:Introduction to Computer Systems,Sep.1,2015](https://scs.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=03308c94-fc20-40d8-8978-1a9b81c344ed)
 
 推荐书籍:《深入理解计算机系统》
+
+## 计算机科学的数学基础:
+
+推荐课程:
