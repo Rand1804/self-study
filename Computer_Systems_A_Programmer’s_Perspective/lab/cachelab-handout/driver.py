@@ -87,7 +87,7 @@ def main():
     
     # Compute the scores for each step
     csim_cscore  = map(int, resultsim[0:1])
-    trans_cscore = int(result32[0]) * int(result64[0]) * int(result61[0])
+    trans_cscore = int(result32[0]) * int(result64[0]) * int(result61[0]);
     miss32 = int(result32[1])
     miss64 = int(result64[1])
     miss61 = int(result61[1])

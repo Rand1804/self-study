@@ -409,3 +409,32 @@ LP -------------> Low Power
 通常情况下写分配与写回,写不分配与写穿透搭配使用
 
 ![image-20220810133323812](computer_system.assets/image-20220810133323812.png)
+
+# Chapter 7
+
+### pre-processor
+
+`cpp -o main.i main.c`
+
+`cpp : c preprocessor`(C预处理器)
+
+or `gcc -E -o main.i main.c`
+
+### Compiler
+
+`cc -S -o main.s main.i`
+
+`cc : c compiler`(C编译器)
+
+or `gcc -S -o main.s main.i`
+
+### Assembler
+
+`as -o main.o main.s`
+
+`as : assembler`(汇编器)
+
+### Linker
+
+![image-20220826160217933](computer_system.assets/image-20220826160217933.png)
+
