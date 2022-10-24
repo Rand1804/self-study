@@ -709,6 +709,16 @@ dlclose(handle);
 
 ****
 
+### 中断(interrupt)
+
+![image-20221012132144691](computer_system.assets/image-20221012132144691.png)
+
+**Asynchronous Exceptions**(异步异常) :由处理器外部发生的状态变化而引起的,这些叫做**中断**(Interrupt)
+
+![image-20221012133819985](computer_system.assets/image-20221012133819985.png)
+
+**Aynchronous Exceptions**(同步异常):由于执行指令而发生的事件引起
+
 ![image-20220916134841974](computer_system.assets/image-20220916134841974.png)
 
 ### 陷阱(trap)
@@ -717,11 +727,17 @@ dlclose(handle);
 - Examples:**system calls**, breakpoint traps, special instructions
 - Returns control to "next" instruction
 
+![image-20220916135345813](computer_system.assets/image-20220916135345813.png)
+
+![image-20220916135512251](computer_system.assets/image-20220916135512251.png)
+
 ### 故障(fault)
 
 - Unintentional but possibly recoverable 
 - Examples:**page faults** (recoverable), protection faults(unrecoverable), floating point exceptions
 - Either re-executes faulting("current") instruction or aborts
+
+![image-20221012141858976](computer_system.assets/image-20221012141858976.png)
 
 ### 终止(abort)
 
@@ -729,15 +745,15 @@ dlclose(handle);
 - Examples : illegal instruction , parity error, machine check
 - Aborts current program
 
-![image-20220916135345813](computer_system.assets/image-20220916135345813.png)
 
-![image-20220916135512251](computer_system.assets/image-20220916135512251.png)
 
-### 中断(interrupt)
+
+
+### 
 
 ![image-20220914175820658](computer_system.assets/image-20220914175820658.png)
 
-**asynchronous**(异步)或**synchronous**(同步)
+
 
 ## 进程(process)
 
@@ -927,6 +943,69 @@ pid_t waitpid(pid_t pid, int *statusp, int options);
 
 int execve(const char *filename, const char *argv[], const char *envp[]);
 
-// Called once, Never r
+// Called once, Never return
+```
+
+
+
+![image-20221014155019610](computer_system.assets/image-20221014155019610.png)
+
+![image-20221018111637758](computer_system.assets/image-20221018111637758.png)
+
+**信号（Signal）**
+
+**定义:** Kernel **sends**(delivers) a signal to a **destination process** by updating some state in the context of the destination process
+
+![image-20221019163507295](computer_system.assets/image-20221019163507295.png)
+
+![image-20221019172233476](computer_system.assets/image-20221019172233476.png)
+
+**段错误**：试图访问受保护的，或者不合法的内存区域，就会出现段错误
+
+![image-20221020114630498](computer_system.assets/image-20221020114630498.png)
+
+![image-20221020131724374](computer_system.assets/image-20221020131724374.png)
+
+![image-20221020135924967](computer_system.assets/image-20221020135924967.png)
+
+![image-20221020140500469](computer_system.assets/image-20221020140500469.png)
+
+![image-20221020141507729](computer_system.assets/image-20221020141507729.png)
+
+```c
+#include <signal.h>
+typedef void (*sighandler_t)(int);
+sighandler_t signal(int signum, sighandler_t handler);
+/* Returns: pointer to previous handler if OK, SIG_ERR on error (does not set errno) */
+```
+
+![image-20221020150440086](computer_system.assets/image-20221020150440086.png)
+
+![image-20221020151225259](computer_system.assets/image-20221020151225259.png)
+
+![image-20221021135119580](computer_system.assets/image-20221021135119580.png)
+
+![image-20221021135652702](computer_system.assets/image-20221021135652702.png)
+
+![image-20221021140027767](computer_system.assets/image-20221021140027767.png)
+
+![img](computer_system.assets/WXWorkCapture_1666334111676.png)
+
+![image-20221021144104200](computer_system.assets/image-20221021144104200.png)
+
+![image-20221021152819519](computer_system.assets/image-20221021152819519.png)
+
+**deadlock**
+
+![image-20221021155347168](computer_system.assets/image-20221021155347168.png)
+
+```c
+#include <setjump.h>
+
+int setjump(jmp_buf env);
+int sigsetjmp(sigjmp_buf env, int savesigs);
+
+void longjump(jmp_buf env, int retval);
+void siglongjmp(sigjmp_buf env, int retval);
 ```
 
