@@ -952,7 +952,7 @@ int execve(const char *filename, const char *argv[], const char *envp[]);
 
 ![image-20221018111637758](computer_system.assets/image-20221018111637758.png)
 
-**信号（Signal）**
+## **信号（Signal）**
 
 **定义:** Kernel **sends**(delivers) a signal to a **destination process** by updating some state in the context of the destination process
 
@@ -987,6 +987,27 @@ sighandler_t signal(int signum, sighandler_t handler);
 
 ![image-20221021135652702](computer_system.assets/image-20221021135652702.png)
 
+```c
+#include <signal.h>
+
+int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
+int sigemptyset(sigset_t *set);
+int sigfillset(sigset_t *set);
+int sigaddset(sigsset_t *set, int signum);
+int sigdelset(sigset_t *set, int signum);
+/* Returns: 0 if OK, -1 on error */
+int sigismember(const sigset_t *set, int signum);
+/* Returns: 1 if member, 0 if not, -1 on error */
+
+/* 
+SIG_BLOCK. Add the signals in set to blocked(blocked = blocked | set)
+SIG_UNBLOCK. Remove the signals in set from blocked(blocked = blocked & ~set)
+SIG_SETMASK. blocked = set
+*/
+```
+
+
+
 ![image-20221021140027767](computer_system.assets/image-20221021140027767.png)
 
 ![img](computer_system.assets/WXWorkCapture_1666334111676.png)
@@ -1009,3 +1030,86 @@ void longjump(jmp_buf env, int retval);
 void siglongjmp(sigjmp_buf env, int retval);
 ```
 
+# chapter 10
+
+### `open`
+
+```c
+#include <sys/types>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+int open(char *filename, int flags, mode_t mode);
+/* Return: new file descriptor if OK, -1 on error */
+/* 
+flags:	 O_RDONLY
+			O_WRONLY
+			O_RDWR			
+Example:
+	fd = Open("foo.txt", O_RDONLY, 0);
+optionals:
+	O_CREAT: If the file doesn't exist, then create a truncated(empty) version of it.
+	O_TRUNC: If the file already exists, then truncate it.
+	O_APPEND: Before each write operation,set the file position to the end of the file.
+Example:
+	fd = Open("foo.txt", O_WRONLY|O_APPEND, 0);
+*/
+```
+
+描述符
+
+standard input(descriptor 0)  :`STDIN_FILENO` defines in <unistd.h>
+
+standard output(descriptor 1) : `STDOUT_FILENO`
+
+standard error (descriptor 2) : `STDERR_FILENO`
+
+![image-20221025165904826](computer_system.assets/image-20221025165904826.png)
+
+```c
+#include <unistd.h>
+
+int close(int fd);
+/* Return : 0 if OK, -1 on error */
+```
+
+```c
+#include <unistd.h>
+
+ssize_t read(int fd, void *buf, size_t n);
+/* Return : number of bytes read if OK, 0 on EOF, -1 on error */
+
+ssize_t write(int fd, const void *buf, size_t n);
+/* Return : number of bytes written if OK, -1 on error */
+```
+
+![image-20221026143029736](computer_system.assets/image-20221026143029736.png)
+
+```bash
+strace  -e trace=write ./a.out
+```
+
+```c
+ssize_t rio_readn(int fd, void *usrbuf, size_t n)
+{
+    size_t nleft = n;
+    ssize_t nread;
+    char *bufp = usrbuf;
+    
+    while (nleft > 0) {
+        if ((nread = read(fd, bufp, nleft)) < 0) {
+            if (errno = EINTR)	/* Interrupted by sig handler return */
+                nread = 0;		/* and call read() again */
+            else
+                return -1;		/* errno set by read() */
+        }
+        else if (nread == 0)
+            break;				/* EOF */
+        nleft -= nread;
+        bufp += nread;
+    }
+    return (n - nleft);			/* Return >= 0 */
+}
+```
+
+![image-20221027160924082](computer_system.assets/image-20221027160924082.png)
