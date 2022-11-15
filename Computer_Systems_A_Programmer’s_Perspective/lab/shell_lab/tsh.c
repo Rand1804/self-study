@@ -189,7 +189,11 @@ void eval(char *cmdline)
     
     if (!builtin_cmd(argv)) {
         sigprocmask(SIG_BLOCK, &mask_one, &prev_one);
+        
         if ((pid = fork()) == 0) {
+            setpgid(0, 0);
+            sigprocmask(SIG_SETMASK, &prev_one, NULL);
+            
             if (execve(argv[0], argv, environ) < 0) {   /* Child process */
                 printf("%s: Command not found.\n", argv[0]);
                 exit(0);
@@ -202,8 +206,10 @@ void eval(char *cmdline)
         sigprocmask(SIG_SETMASK, &prev_one, NULL);
         if (!bg) {
             waitfg(pid);
+        } else {
+            printf("[%d] (%d) %s", pid2jid(pid), pid, cmdline);
         }
-        
+            
     }
     return;
 }
@@ -292,38 +298,43 @@ int builtin_cmd(char **argv)
  */
 void do_bgfg(char **argv) 
 {
-    int jid;
-    int pid;
-    int flag;
-    char *ptr;
-    sigset_t mask_one, prev_one;
-    sigemptyset(&mask_one);
-    sigaddset(&mask_one, SIGCHLD);
-    
-    
-    if (argv[1]) {  /* argv[1] != NULL */
-        flag = strcmp(argv[0], "bg");         /* fg: flag = 1; bg: flag = 0*/
-        sigprocmask(SIG_BLOCK, &mask_one, &prev_one);
-        if (argv[1][0] == '%') {
-            jid = (int) strtol(&argv[1][1], &ptr, 10);
-            if (!getjobjid(jobs, jid))
-                jid = 0;
-        }else{
-            pid = (int) strtol(argv[1], &ptr, 10);
-            jid = pid2jid(pid);
-        }
-        if (!jid) {
-            printf("%s :No such job\n", argv[1]);
+    if (argv[1] == NULL) {
+        printf("%s command requires PID or %%jobid argument", argv[0]);
+        return;
+    }
+
+    if (!isdigit(argv[1][0]) && argv[1][0] != '%') {
+        printf("%s: argument must be a PID or %%jobid", argv[0]);
+        return;
+    }
+
+    int is_job_jid = (argv[1][0]=='%') ? 1 : 0;
+    struct job_t *givenjob;
+    if (is_job_jid) {
+        givenjob = getjobjid(jobs, atoi(&argv[1][1]));
+        if (givenjob == NULL) {
+            printf("%s: No such job\n", argv[1]);
             return;
         }
-        jobs[jid].state = flag ? FG : BG;
-        kill(jobs[jid].pid, SIGCONT);
-        sigprocmask(SIG_SETMASK, &prev_one, NULL);
-        if (flag)
-            waitfg(jobs[jid].pid);
-    }else
-        printf("%s command requires PID or %%jobid argument\n", argv[0]);
+    } else {
+        givenjob = getjobpid(jobs, (pid_t) atoi(argv[1]));
+        if (givenjob == NULL) {
+            printf("(%d): No such process\n", atoi(argv[1]));
+            return;
+        }
+    }
 
+    if (strcmp(argv[0], "bg") == 0) {
+        givenjob->state = BG;
+        printf("[%d] (%d) %s", givenjob->jid, givenjob->pid, givenjob->cmdline);
+        kill(-givenjob->pid, SIGCONT);
+    } else {
+        givenjob->state = FG;
+        kill(-givenjob->pid, SIGCONT);
+        waitfg(givenjob->pid);
+    }
+
+    return;
 }
 
 /* 
@@ -358,18 +369,26 @@ void waitfg(pid_t pid)
 void sigchld_handler(int sig) 
 {
     int olderrno = errno;
-    sigset_t mask_all, prev_all;
     pid_t pid;
+    struct job_t *job;
+    int status;
 
-    sigfillset(&mask_all);
-    while ((pid = waitpid(-1, NULL, 0)) > 0) {  /* Reap child */
-        sigprocmask(SIG_BLOCK, &mask_all, &prev_all);
-        if (!deletejob(jobs, pid))
-            Sio_puts("warning!: deletejob return 0\n");
-        sigprocmask(SIG_SETMASK, &prev_all, NULL);
+    while ((pid = waitpid(-1, &status, WNOHANG | WUNTRACED)) > 0) {  /* Reap child */
+        job = getjobpid(jobs, pid);
+        if (WIFEXITED(status)){
+            deletejob(jobs, pid);
+        }
+        else if (WIFSIGNALED(status)) {
+            Sio_puts("Job ["); Sio_putl((long) job->jid); Sio_puts("] ("); Sio_putl((long) pid); Sio_puts(") terminated by signal "); Sio_putl((long) WTERMSIG(status));Sio_puts("\n");
+            deletejob(jobs, pid);
+        }
+        else if (WSTOPSIG(status)) {
+            Sio_puts("Job ["); Sio_putl((long) job->jid); Sio_puts("] ("); Sio_putl((long) pid); Sio_puts(") stopped by signal "); Sio_putl((long) WSTOPSIG(status));Sio_puts("\n");
+            job->state = ST;
+        }
     }
-    if (errno != ECHILD)
-        Sio_error("waitpid error");
+        
+
     errno = olderrno;
     return;
 }
@@ -381,15 +400,11 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig) 
 {   
-
-    int olderrno = errno;
     pid_t pid;
 
     pid = fgpid(jobs);
     if (pid != 0)
         kill(-pid, sig);
-    
-    errno = olderrno;
     return;
 }
 
@@ -400,15 +415,11 @@ void sigint_handler(int sig)
  */
 void sigtstp_handler(int sig) 
 {
-    int olderrno = errno;
     pid_t pid;
 
     pid = fgpid(jobs);
-    if (pid == 0)
-        return;
-    kill(-pid, sig);
-    
-    errno = olderrno;
+    if (pid != 0)
+        kill(-pid, sig);
     return;
 }
 
