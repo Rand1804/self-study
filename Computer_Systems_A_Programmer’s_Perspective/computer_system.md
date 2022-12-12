@@ -195,6 +195,25 @@ objdump -d mstore.o
 
 all stack elements
 
+### push and pop / call and ret
+
+![image-20221115171414186](computer_system.assets/image-20221115171414186.png)
+
+![image-20221115171715732](computer_system.assets/image-20221115171715732.png)
+
+![image-20221115171954894](computer_system.assets/image-20221115171954894.png)
+
+
+
+| 指令 | 说明                          |
+| ---- | ----------------------------- |
+| push | 下移+载入                     |
+| pop  | 弹出+上移                     |
+| call | push下一条指令地址+更改rip为S |
+| ret  | pop当前指向值到rip            |
+
+
+
 ## **3.5** **Arithmetic and Logical Operations**
 
 ![image-20220713172321407](computer_system.assets/image-20220713172321407.png)
@@ -1035,7 +1054,7 @@ void siglongjmp(sigjmp_buf env, int retval);
 ### `open`
 
 ```c
-#include <sys/types>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 
@@ -1113,3 +1132,228 @@ ssize_t rio_readn(int fd, void *usrbuf, size_t n)
 ```
 
 ![image-20221027160924082](computer_system.assets/image-20221027160924082.png)
+
+# chapter 9
+
+SRAM:Static random-access memory静态随机存储
+
+DRAM:Dynamic random-access memory动态随机存储
+
+MMU:Memory management unit 内存管理单元
+
+page table:页表
+
+PTE: page table entry 页表条目
+
+page fault: 缺页
+
+**In virtual memory parlance, blocks are known as pages.** 
+
+*swapping* or *paging*: The activity of transferring a page between disk and memory is known as *swapping* or *paging*.
+
+Pages are *swapped in* (*paged in*) from disk to DRAM, and *swapped out* (*paged out*) from DRAM to disk.
+
+demand paging: 按需调度
+
+active page: 活动页面
+
+working set: 工作集
+
+resident set: 常驻集合
+
+thrashing: 抖动
+
+You can monitor the number of page faults (and lots of other information) with the Linux **getrusage** function.
+
+memory mapping: 将一组连续的虚拟页映射到任意一个文件中的任意位置的表示法称作内存映射
+
+![image-20221116173100053](computer_system.assets/image-20221116173100053.png)
+
+A **translation lookaside buffer** (**TLB**) is a memory [cache](https://en.wikipedia.org/wiki/CPU_cache) that stores the recent translations of [virtual memory](https://en.wikipedia.org/wiki/Virtual_memory) to [physical memory](https://en.wikipedia.org/wiki/Physical_memory). It is used to reduce the time taken to access a user memory location.[[1\]](https://en.wikipedia.org/wiki/Translation_lookaside_buffer#cite_note-ostep-1-1) It can be called an address-translation cache. It is a part of the chip's [memory-management unit](https://en.wikipedia.org/wiki/Memory_management_unit) (MMU). A TLB may reside between the [CPU](https://en.wikipedia.org/wiki/Central_processing_unit) and the [CPU cache](https://en.wikipedia.org/wiki/CPU_cache), between CPU cache and the main memory or between the different levels of the multi-level cache. The majority of desktop, laptop, and server processors include one or more TLBs in the memory-management hardware, and it is nearly always present in any processor that utilizes [paged](https://en.wikipedia.org/wiki/Paging) or [segmented](https://en.wikipedia.org/wiki/Memory_segmentation) [virtual memory](https://en.wikipedia.org/wiki/Virtual_memory).
+
+virtual address space (VAS) : 虚拟地址空间
+
+physical address space(PAS): 物理地址空间
+
+page table base register(PTBR): 页表基址寄存器
+
+virtual page offset(VPO): 虚拟页面偏移
+
+virtual page number(VPN): 虚拟页号
+
+physical page number(PPN): 物理页号
+
+CO: block offset
+
+CI: set index
+
+CT: cache tag
+
+
+
+![image-20221117133446106](computer_system.assets/image-20221117133446106.png)
+
+![image-20221205161800222](computer_system.assets/image-20221205161800222.png)
+
+```c
+#include <unistd.h>
+#include <sys/mman.h>
+
+void *mmap(void *start, size_t length, int prot, int flags,
+           int fd, off_t offset);
+/* Returns:pointer to mapped area if OK, MAP_FAILED(-1) on error */
+```
+
+![image-20221117173040956](computer_system.assets/image-20221117173040956.png)
+
+```C
+#include <unistd.h>
+#include <sys/mman.h>
+
+int munmap(void *start, size_t length);
+/* Returns: 0 if OK, -1 on error */
+```
+
+### 动态内存分配(Dynamic Memory Allocation)
+
+explicit allocators: 显式分配器(such as malloc and free in c, new and delete in cpp)
+
+implicit allocators: 隐式分配器,也叫垃圾收集器(garbage collector)
+
+```c
+#include <stdlib.h>
+void *malloc(size_t size);
+/* Returns: pointer to allocated block if OK, NULL on error */
+```
+
+```c
+#include <unistd.h>
+
+void *sbrk(intptr_t incr);
+/* Returns: old brk pointer on success, -1 on error */
+
+#include <stdlib.h>
+void free(void *ptr);
+/* Retruns: nothing */
+```
+
+## Core i7
+
+![image-20221206113032714](computer_system.assets/image-20221206113032714.png)
+
+**L1**: 4 cycles
+**L2**: 10 cycles
+**L3**: 30-50 cycles
+
+![image-20221206133006962](computer_system.assets/image-20221206133006962.png)
+
+![image-20221206144745237](computer_system.assets/image-20221206144745237.png)
+
+![image-20221206145822051](computer_system.assets/image-20221206145822051.png)
+
+![image-20221206150416868](computer_system.assets/image-20221206150416868.png)
+
+![image-20221206152407486](computer_system.assets/image-20221206152407486.png)
+
+## Areas
+
+![image-20221206153133231](computer_system.assets/image-20221206153133231.png)
+
+![image-20221206161631441](computer_system.assets/image-20221206161631441.png)
+
+## Memory Mapping
+
+![image-20221206170152208](computer_system.assets/image-20221206170152208.png)
+
+![image-20221206173129277](computer_system.assets/image-20221206173129277.png)
+
+### Fork
+
+![image-20221206173216581](computer_system.assets/image-20221206173216581.png)
+
+![image-20221207133842294](computer_system.assets/image-20221207133842294.png)
+
+### mmap()
+
+![image-20221207135655567](computer_system.assets/image-20221207135655567.png)
+
+![image-20221207140240280](computer_system.assets/image-20221207140240280.png)
+
+![image-20221207140737345](computer_system.assets/image-20221207140737345.png)
+
+## Dynamic Memory Allocation
+
+![image-20221207144339292](computer_system.assets/image-20221207144339292.png)
+
+![image-20221207145510220](computer_system.assets/image-20221207145510220.png)
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+void foo(int n) {
+    int i, *p;
+    
+    /* Allocate a block of n ints */
+    p = (int *) malloc(n * sizeof(int));
+    if (p == NULL) {
+        perror("malloc");
+        exit(0);
+    }
+    
+    /* Initialize allocate block */
+    for (i=0; i<n; i++)
+        p[i] = i;
+    
+    /* Return allocated block to the heap */
+    free(p);
+}
+```
+
+![image-20221207151152234](computer_system.assets/image-20221207151152234.png)
+
+## Fragmentation
+
+- Poor memory utilization caused by fragmentation
+  - internal fragmentation
+  - external fragmentation
+
+![image-20221207153408130](computer_system.assets/image-20221207153408130.png)
+
+![image-20221207154511066](computer_system.assets/image-20221207154511066.png)
+
+![image-20221207154740719](computer_system.assets/image-20221207154740719.png)
+
+![image-20221207161005265](computer_system.assets/image-20221207161005265.png)
+
+![image-20221207161901255](computer_system.assets/image-20221207161901255.png)
+
+![image-20221208140033829](computer_system.assets/image-20221208140033829.png)
+
+![image-20221208141518680](computer_system.assets/image-20221208141518680.png)
+
+![image-20221208143624838](computer_system.assets/image-20221208143624838.png)
+
+### Advanced Concepts
+
+![image-20221208151651544](computer_system.assets/image-20221208151651544.png)
+
+![image-20221208152014046](computer_system.assets/image-20221208152014046.png)
+
+> **Is to you know first do fairly simple things and then look and see where. Where the slowdowns are and inefficiencies are and then just sort of. Hit those one after the other and optimize only for the things that are necessary.**
+
+![image-20221208154633267](computer_system.assets/image-20221208154633267.png)
+
+![image-20221208154713096](computer_system.assets/image-20221208154713096.png)
+
+![image-20221208163712242](computer_system.assets/image-20221208163712242.png)
+
+![image-20221208163808540](computer_system.assets/image-20221208163808540.png)
+
+![image-20221208170341099](computer_system.assets/image-20221208170341099.png)
+
+## Segregated List(Seglist)
+
+![image-20221208171512724](computer_system.assets/image-20221208171512724.png)
+
+![image-20221208172144691](computer_system.assets/image-20221208172144691.png)
