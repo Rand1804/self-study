@@ -5,6 +5,7 @@
 int main()
 {
     int fd1, fd2;
+    
 
     fd1 = Open("foo.txt", O_RDONLY, 0);
     Close(fd1);

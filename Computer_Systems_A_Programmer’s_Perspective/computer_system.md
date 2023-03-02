@@ -1407,3 +1407,13 @@ void foo(int n) {
 ![image-20221212164415755](computer_system.assets/image-20221212164415755.png)
 
 ![image-20221212164448403](computer_system.assets/image-20221212164448403.png)
+
+# Chapter 11
+
+URL: Universal Resource Locator
+
+CGI: Common Gateway Interface
+
+![image-20230302155401045](computer_system.assets/image-20230302155401045.png)
+
+![image-20230302160912851](computer_system.assets/image-20230302160912851.png)
