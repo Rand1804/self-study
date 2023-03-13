@@ -1417,3 +1417,9 @@ CGI: Common Gateway Interface
 ![image-20230302155401045](computer_system.assets/image-20230302155401045.png)
 
 ![image-20230302160912851](computer_system.assets/image-20230302160912851.png)
+
+# Chapter 12
+
+### volatile
+
+**volatile**: volatile tells the compiler nerver to put that variable in a register(it always read that value from memory or store it to memory)
