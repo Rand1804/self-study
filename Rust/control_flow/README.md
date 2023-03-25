@@ -8,5 +8,6 @@ When a variable goes out of scope, Rust calls a special function for us. This fu
 
 In addition, there’s a design choice that’s implied by this: **Rust will never automatically create “deep” copies of your data**.Therefore, any automatic copying can be assumed to be inexpensive in terms of runtime performance.
 
- When a variable that *includes data on the heap* goes out of scope, the value will be cleaned up by drop unless ownership of the data has been moved to another variable.
+When a variable that *includes data on the heap* goes out of scope, the value will be cleaned up by drop unless ownership of the data has been moved to another variable.
  
+We also cannot have a mutable reference while we have an immutable one to the same value.
