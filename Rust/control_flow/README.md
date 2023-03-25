@@ -11,3 +11,5 @@ In addition, there’s a design choice that’s implied by this: **Rust will nev
 When a variable that *includes data on the heap* goes out of scope, the value will be cleaned up by drop unless ownership of the data has been moved to another variable.
  
 We also cannot have a mutable reference while we have an immutable one to the same value.
+
+Recall from the borrowing rules that if we have an immutable reference to something, we cannot also take a mutable reference.
