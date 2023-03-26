@@ -13,3 +13,5 @@ When a variable that *includes data on the heap* goes out of scope, the value wi
 We also cannot have a mutable reference while we have an immutable one to the same value.
 
 Recall from the borrowing rules that if we have an immutable reference to something, we cannot also take a mutable reference.
+
+The type of s here is &str: it’s a slice pointing to that specific point of the binary. This is also why string literals are immutable; &str is an immutable reference.
