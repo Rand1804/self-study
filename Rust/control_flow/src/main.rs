@@ -1,9 +1,20 @@
-fn main() {
-    FtoC("65");
+
+#[derive(Debug)]
+struct Tmp {
+    x: i32,
+    y: i32
 }
 
-fn FtoC(fahrenheit: &str) {
-    let fahrenheit: f32 = fahrenheit.trim().parse().expect("Please type a number!");
-    let celsius = (fahrenheit - 32.0) * 5.0 / 9.0;
-    println!("{}°F is {}°C", fahrenheit, celsius);
+
+let num: i32 = 3;
+
+fn main() {
+    let arr = [1, 2, 4];
+    take_arr(arr);
+    let tmp = Tmp {x: 1, y: 2};
+    println!("main{:?}", tmp);
+}
+
+fn take_arr(arr: [i32; 3]) {
+    println!("{:?}", arr);
 }
