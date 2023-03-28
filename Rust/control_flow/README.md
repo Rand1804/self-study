@@ -2,6 +2,8 @@
 
 In Rust, the return value of the function is synonymous with the value of the final expression in the block of the body of a function. 
 
+The tuple without any values has a special name, **unit**. This value and its corresponding type are both written () and represent an empty value or an empty return type. Expressions implicitly return the unit value if they don’t return any other value.
+
 ### Chapter04 Understanding Ownership
 
 When a variable goes out of scope, Rust calls a special function for us. This function is called drop
