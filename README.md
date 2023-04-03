@@ -1,5 +1,6 @@
 # self-study
-学习使我快乐！怎么还不去学习？
+
+Somebody has to win, so why not be me?
 
 ## 入门语言推荐:C
 

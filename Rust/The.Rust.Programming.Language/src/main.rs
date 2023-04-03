@@ -1,20 +1,11 @@
-
-#[derive(Debug)]
-struct Tmp {
-    x: i32,
-    y: i32
+struct ImportantExcerpt {
+    part: &str,
 }
-
-
-let num: i32 = 3;
 
 fn main() {
-    let arr = [1, 2, 4];
-    take_arr(arr);
-    let tmp = Tmp {x: 1, y: 2};
-    println!("main{:?}", tmp);
-}
-
-fn take_arr(arr: [i32; 3]) {
-    println!("{:?}", arr);
+    let novel = String::from("Call me Ishmael. Some years ago...");
+    let first_sentence = novel.split('.').next().expect("Could not find a '.'");
+    let i = ImportantExcerpt {
+        part: first_sentence,
+    };
 }
