@@ -75,3 +75,11 @@ The compiler uses three rules to figure out the lifetimes of the references when
 **The second rule** is that, if there is exactly one input lifetime parameter, that lifetime is assigned to all output lifetime parameters: fn foo<'a>(x: &'a i32) -> &'a i32.
 
 **The third rule** is that, if there are multiple input lifetime parameters, but one of them is &self or &mut self because this is a method, the lifetime of self is assigned to all output lifetime parameters. This third rule makes methods much nicer to read and write because fewer symbols are necessary.
+
+### Chapter11 Writing Automated Tests
+
+ The derive attribute generates code that will implement a trait with its own default implementation on the type you’ve annotated with the derive syntax.
+
+ The default behavior of the binary produced by cargo test is to run all the tests in parallel and capture output generated during test runs, preventing the output from being displayed and making it easier to read the output related to the test results.
+
+ The #[cfg(test)] annotation on the tests module tells Rust to compile and run the test code only when you run cargo test, not when you run cargo build.The attribute cfg stands for configuration and tells Rust that the following item should only be included given a certain configuration option.

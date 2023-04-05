@@ -1,5 +1,5 @@
-struct ImportantExcerpt {
-    part: &str,
+struct ImportantExcerpt<'a> {
+    part: &'a str,
 }
 
 fn main() {
