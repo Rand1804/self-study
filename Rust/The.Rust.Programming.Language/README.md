@@ -83,3 +83,16 @@ The compiler uses three rules to figure out the lifetimes of the references when
  The default behavior of the binary produced by cargo test is to run all the tests in parallel and capture output generated during test runs, preventing the output from being displayed and making it easier to read the output related to the test results.
 
  The #[cfg(test)] annotation on the tests module tells Rust to compile and run the test code only when you run cargo test, not when you run cargo build.The attribute cfg stands for configuration and tells Rust that the following item should only be included given a certain configuration option.
+
+ As a result, the Rust community has developed guidelines for splitting the separate concerns of a binary program when main starts getting large. This process has the following steps:
+
+- Split your program into a main.rs and a lib.rs and move your program’s logic to lib.rs.
+- As long as your command line parsing logic is small, it can remain in main.rs.
+- When the command line parsing logic starts getting complicated, extract it from main.rs and move it to lib.rs.
+
+The responsibilities that remain in the main function after this process should be limited to the following:
+
+- Calling the command line parsing logic with the argument values
+- Setting up any other configuration
+- Calling a run function in lib.rs
+- Handling the error if run returns an error

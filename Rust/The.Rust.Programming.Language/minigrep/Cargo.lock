@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "control_flow"
+name = "minigrep"
 version = "0.1.0"
