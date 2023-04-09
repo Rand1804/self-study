@@ -22,6 +22,10 @@ The type of s here is &str: it’s a slice pointing to that specific point of th
 
 Rust has a feature called automatic referencing and dereferencing. When you call a method with object.something(), Rust automatically adds in &, &mut, or * so object matches the signature of the method. 
 
+### Chapter06 Enums and Pattern Matching
+
+Rust also has a pattern we can use when we want a catch-all but don’t want to use the value in the catch-all pattern: `_ `is a special pattern that matches any value and does not bind to that value. This tells Rust we aren’t going to use the value, so Rust won’t warn us about an unused variable.
+
 
 ### Chapter08 Common Collections
 
@@ -96,3 +100,12 @@ The responsibilities that remain in the main function after this process should 
 - Setting up any other configuration
 - Calling a run function in lib.rs
 - Handling the error if run returns an error
+
+### Chapter13 Functional Language Features: Iterators and Closures
+
+The way a closure captures and handles values from the environment affects which traits the closure implements, and traits are how functions and structs can specify what kinds of closures they can use. Closures will automatically implement one, two, or all three of these Fn traits, in an additive fashion, depending on how the closure’s body handles the values:
+1. FnOnce applies to closures that can be called once. All closures implement at least this trait, because all closures can be called. A closure that moves captured values out of its body will only implement FnOnce and none of the other Fn traits, because it can only be called once.
+2. FnMut applies to closures that don’t move captured values out of their body, but that might mutate the captured values. These closures can be called more than once.
+3. Fn applies to closures that don’t move captured values out of their body and that don’t mutate captured values, as well as closures that capture nothing from their environment. These closures can be called more than once without mutating their environment, which is important in cases such as calling a closure multiple times concurrently.
+
+Each call to next eats up an item from the iterator. We didn’t need to make v1_iter mutable when we used a for loop because the loop took ownership of v1_iter and made it mutable behind the scenes.
