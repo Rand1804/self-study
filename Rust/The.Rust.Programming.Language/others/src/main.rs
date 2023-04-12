@@ -1,10 +1,12 @@
-use std::thread;
+fn foo(s: &str) {
+    println!("{}", s);
+}
 
 fn main() {
-    let list = vec![1, 2, 3];
-    println!("Before defining closure: {:?}", list);
+    let mut s  = String::from("hello");
+    
 
-    thread::spawn(move || println!("From thread: {:?}", list))
-        .join()
-        .unwrap();
+    let s = s;
+
+
 }

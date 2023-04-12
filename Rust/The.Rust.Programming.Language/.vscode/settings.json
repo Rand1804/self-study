@@ -1,0 +1,6 @@
+{
+    "rust-analyzer.linkedProjects": [
+        ".\\others\\Cargo.toml",
+        ".\\minigrep\\Cargo.toml"
+    ]
+}

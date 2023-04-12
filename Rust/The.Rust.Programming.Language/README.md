@@ -109,3 +109,12 @@ The way a closure captures and handles values from the environment affects which
 3. Fn applies to closures that don’t move captured values out of their body and that don’t mutate captured values, as well as closures that capture nothing from their environment. These closures can be called more than once without mutating their environment, which is important in cases such as calling a closure multiple times concurrently.
 
 Each call to next eats up an item from the iterator. We didn’t need to make v1_iter mutable when we used a for loop because the loop took ownership of v1_iter and made it mutable behind the scenes.
+
+### Chapter15 Smart Pointers
+
+Rust, with its concept of ownership and borrowing, has an additional difference between references and smart pointers: while references only borrow data, in many cases, smart pointers own the data they point to.
+
+**Boxes** don’t have performance overhead, other than storing their data on the heap instead of on the stack. But they don’t have many extra capabilities either. You’ll use them most often in these situations:
+- When you have a type whose size can’t be known at compile time and you want to use a value of that type in a context that requires an exact size
+- When you have a large amount of data and you want to transfer ownership but ensure the data won’t be copied when you do so
+- When you want to own a value and you care only that it’s a type that implements a particular trait rather than being of a specific type
