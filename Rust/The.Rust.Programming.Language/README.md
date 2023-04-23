@@ -135,10 +135,12 @@ When the Deref trait is defined for the types involved, Rust will analyze the ty
 
 Similar to how you use the Deref trait to override the * operator on immutable references, you can use the DerefMut trait to override the * operator on mutable references.
 Rust does deref coercion when it finds types and trait implementations in three cases:
+
 - From &T to &U when T: Deref<Target=U>
 - From &mut T to &mut U when T: DerefMut<Target=U>
 - From &mut T to &U when T: Deref<Target=U>
 
+<<<<<<< HEAD
 In Rust, you can specify that a particular bit of code be run whenever a value goes out of scope, and the compiler will insert this code automatically.
 
 This error message states that we’re not allowed to explicitly call drop. The error message uses the term destructor, which is the general programming term for a function that cleans up an instance. A destructor is analogous to a constructor, which creates an instance. The drop function in Rust is one particular destructor.Rust doesn’t let us call drop explicitly because Rust would still automatically call drop on the value at the end of main. This would cause a double free error because Rust would be trying to clean up the same value twice.We can’t disable the automatic insertion of drop when a value goes out of scope, and we can’t call the drop method explicitly. So, if we need to force a value to be cleaned up early, we use the std::mem::drop function.
@@ -146,5 +148,15 @@ This error message states that we’re not allowed to explicitly call drop. The 
 You have to enable multiple ownership explicitly by using the Rust type Rc, which is an abbreviation for reference counting.
 
 Note that Rc is only for use in single-threaded scenarios. When we discuss concurrency in Chapter 16, we’ll cover how to do reference counting in multithreaded programs.
+=======
+
+In Rust, you can specify that a particular bit of code be run whenever a value goes out of scope, and the compiler will insert this code automatically.
+
+This error message states that we’re not allowed to explicitly call drop. The error message uses the term *destructor*, which is the general programming term for a function that cleans up an instance. A destructor is analogous to a *constructor*, which creates an instance. The drop function in Rust is one particular destructor.Rust doesn’t let us call drop explicitly because Rust would still automatically call drop on the value at the end of main. This would cause a double free error because Rust would be trying to clean up the same value twice.We can’t disable the automatic insertion of drop when a value goes out of scope, and we can’t call the drop method explicitly. So, if we need to force a value to be cleaned up early, we use the std::mem::drop function.
+
+You have to enable multiple ownership explicitly by using the Rust type Rc<T>, which is an abbreviation for reference counting.
+
+Note that Rc<T> is only for use in single-threaded scenarios. When we discuss concurrency in Chapter 16, we’ll cover how to do reference counting in multithreaded programs.
+>>>>>>> 21ea67aed68c6561d0a3f32e29e801e15b987b40
 
 We could have called a.clone() rather than Rc::clone(&a), but Rust’s convention is to use Rc::clone in this case. The implementation of Rc::clone doesn’t make a deep copy of all the data like most types’ implementations of clone do. The call to Rc::clone only increments the reference count, which doesn’t take much time.
