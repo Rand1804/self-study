@@ -173,3 +173,20 @@ If you have `RefCell<T>` values that contain `Rc<T>` values or similar nested co
 Strong references are how you can share ownership of an `Rc<T>` instance. Weak references don’t express an ownership relationship, and their count doesn’t affect when an `Rc<T>` instance is cleaned up.
 
 Because the value that `Weak<T>` references might have been dropped, to do anything with the value that a `Weak<T>` is pointing to, you must make sure the value still exists. Do this by calling the upgrade method on a `Weak<T>` instance, which will return an `Option<Rc<T>>`. You’ll get a result of Some if the `Rc<T>` value has not been dropped yet and a result of None if the `Rc<T>` value has been dropped. Because upgrade returns an `Option<Rc<T>>`, Rust will ensure that the Some case and the None case are handled, and there won’t be an invalid pointer.
+
+## Chapter16 Fearless Concurrency
+
+A channel is said to be closed if either the transmitter or receiver half is dropped.
+
+Mutex is an abbreviation for mutual exclusion, as in, a mutex allows only one thread to access some data at any given time.
+
+Mutexes have a reputation for being difficult to use because you have to remember two rules:
+
+- You must attempt to acquire the lock before using the data.
+- When you’re done with the data that the mutex guards, you must unlock the data so other threads can acquire the lock.
+
+As you might suspect, `Mutex<T>` is a smart pointer. More accurately, the call to lock returns a smart pointer called MutexGuard, wrapped in a LockResult that we handled with the call to unwrap. The MutexGuard smart pointer implements Deref to point at our inner data; the smart pointer also has a Drop implementation that releases the lock automatically when a MutexGuard goes out of scope, which happens at the end of the inner scope.
+
+When `Rc<T>` manages the reference count, it adds to the count for each call to clone and subtracts from the count when each clone is dropped. But it doesn’t use any concurrency primitives to make sure that changes to the count can’t be interrupted by another thread. This could lead to wrong counts—subtle bugs that could in turn lead to memory leaks or a value being dropped before we’re done with it. What we need is a type exactly like `Rc<T>` but one that makes changes to the reference count in a thread-safe way.
+
+Fortunately, `Arc<T>` is a type like `Rc<T>` that is safe to use in concurrent situations. The a stands for atomic, meaning it’s an atomically reference counted type. *Atomics* are an additional kind of concurrency primitive that we won’t cover in detail here: see the standard library documentation for `std::sync::atomic` for more details. At this point, you just need to know that atomics work like primitive types but are safe to share across threads.
