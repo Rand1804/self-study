@@ -210,3 +210,5 @@ Another aspect commonly associated with OOP is the idea of *encapsulation*, whic
 You would choose inheritance for two main reasons. One is for reuse of code: you can implement particular behavior for one type, and inheritance enables you to reuse that implementation for a different type. You can do this in a limited way in Rust code using default trait method implementations.
 
 The other reason to use inheritance relates to the type system: to enable a child type to be used in the same places as the parent type. This is also called *polymorphism*, which means that you can substitute multiple objects for each other at runtime if they share certain characteristics.
+
+This vector is of type `Box<dyn Draw>`, which is a trait object; it’s a stand-in for any type inside a Box that implements the Draw trait.
