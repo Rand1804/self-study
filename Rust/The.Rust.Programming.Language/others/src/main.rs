@@ -1,23 +1,19 @@
-use std::sync::{Arc, Mutex};
-use std::thread;
-
 fn main() {
-    let counter = Arc::new(Mutex::new(0));
-    let mut handles = vec![];
+    let favorite_color: Option<&str> = None;
+    let is_tuesday = false;
+    let age: Result<u8, _> = "34".parse();
 
-    for _ in 0..10 {
-        let counter = Arc::clone(&counter);
-        let handle = thread::spawn(move || {
-            let mut num = counter.lock().unwrap();
-
-            *num += 1;
-        });
-        handles.push(handle);
+    if let Some(color) = favorite_color {
+        println!("Using your favorite color, {color}, as the background");
+    } else if is_tuesday {
+        println!("Tuesday is green day!");
+    } else if let Ok(age) = age {
+        if age > 30 {
+            println!("Using purple as the background color");
+        } else {
+            println!("Using orange as the background color");
+        }
+    } else {
+        println!("Using blue as the background color");
     }
-
-    for handle in handles {
-        handle.join().unwrap();
-    }
-
-    println!("Result: {}", *counter.lock().unwrap());
 }

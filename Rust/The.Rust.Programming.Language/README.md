@@ -55,6 +55,10 @@ By default, when a panic occurs, the program starts unwinding, which means Rust 
 
 ## Chapter10 Generic Types, Traits, and Lifetimes
 
+*When we use a parameter in the body of the function, we have to declare the parameter name in the signature so the compiler knows what that name means. Similarly, when we use a type parameter name in a function signature, we have to declare the type parameter name before we use it.*
+
+Note that we have to declare T just after impl so we can use T to specify that we’re implementing methods on the type `Point<T>`. By declaring T as a generic type after impl, Rust can identify that the type in the angle brackets in Point is a generic type rather than a concrete type.
+
 The generic `Option<T>` is replaced with the specific definitions created by the compiler. Because Rust compiles generic code into code that specifies the type in each instance, we pay no runtime cost for using generics.
 
 But we can’t implement external traits on external types. For example, we can’t implement the Display trait on `Vec<T>` within our aggregator crate, because Display and `Vec<T>` are both defined in the standard library and aren’t local to our aggregator crate.
@@ -216,3 +220,18 @@ This vector is of type `Box<dyn Draw>`, which is a trait object; it’s a stand-
 The advantage of using trait objects and Rust’s type system to write code similar to code using duck typing is that we never have to check whether a value implements a particular method at runtime or worry about getting errors if a value doesn’t implement a method but we call it anyway. Rust won’t compile our code if the values don’t implement the traits that the trait objects need.
 
 We need to set `state` to `None` temporarily rather than setting it directly with code like `self.state = self.state.request_review();` to get ownership of the `state` value. This ensures `Post` can’t use the old `state` value after we’ve transformed it into a new state.
+
+One downside of the state pattern is that, because the states implement the transitions between states, some of the states are coupled to each other. If we add another state between `PendingReview` and `Published`, such as `Scheduled`, we would have to change the code in `PendingReview` to transition to Scheduled instead.
+
+Another downside is that we’ve duplicated some logic.
+
+## Chapter18 Patterns and Matching
+
+Rust compares the expression against the pattern and assigns any names it finds. So in the `let x = 5;` example, `x` is a pattern that means “bind what matches here to the variable `x`.” Because the name `x` is the whole pattern, this pattern effectively means “bind everything to the variable `x`, whatever the value is.
+
+*refutable* and *irrefutable*
+
+- Patterns that will match for any possible value passed are *irrefutable*
+- Patterns that can fail to match for some possible value are refutable.
+
+Function parameters, let statements, and for loops can only accept irrefutable patterns, because the program cannot do anything meaningful when values don’t match. The if let and while let expressions accept refutable and irrefutable patterns, but the compiler warns against irrefutable patterns because by definition they’re intended to handle possible failure: the functionality of a conditional is in its ability to perform differently depending on success or failure.
