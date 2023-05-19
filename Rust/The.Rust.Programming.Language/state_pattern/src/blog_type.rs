@@ -26,30 +26,31 @@ impl DraftPost {
     pub fn request_review(self) -> PendingReviewPost {
         PendingReviewPost {
             content: self.content,
-            count: 0,
+            approvals: 0,
         }
     }
 }
 
 pub struct PendingReviewPost {
     content: String,
-    count: u32,
+    approvals: u32,
 }
 
-pub enum Either<A, B> {
-    Left(A),
-    Right(B),
-}
 
 impl PendingReviewPost {
-    pub fn approve(mut self) -> Either<PendingReviewPost, Post> {
-        self.count += 1;
-        if self.count < 2 {
-            Either::Left(self)
+    pub fn consent(&mut self) {
+        self.approvals += 1;
+    }
+
+    pub fn approve(self) -> Option<Post> {
+        if self.approvals >= 2 {
+            Some(
+                Post {
+                    content: self.content,
+                }
+            )
         } else {
-            Either::Right(Post {
-                content: self.content,
-            })
+            None
         }
     }
 

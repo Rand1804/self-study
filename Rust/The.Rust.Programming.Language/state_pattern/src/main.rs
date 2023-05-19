@@ -18,9 +18,9 @@
 // }
 
 
-use state_pattern::blog_type::PendingReviewPost;
+
 use state_pattern::blog_type::Post;
-use state_pattern::blog_type::Either;
+
 
 fn main() {
     let mut post = Post::new();
@@ -31,20 +31,14 @@ fn main() {
 
     let post = post.reject();
     
-    let post = post.request_review();
+    let mut post = post.request_review();
 
-    let post = post.approve();
-
-    // TODO
-    // match post {
-    //     Either::Left(pending_review) => {
-    //         match pending_review.approve()
-    //     },
-    //     Either::Right(post) => {post},
-    // }
+    post.consent();
+    post.consent();
 
 
-    // assert_eq!("I ate a salad for lunch today", post.content());
+    let post = post.approve().unwrap();
+    assert_eq!("I ate a salad for lunch today", post.content());
 }
 
 
