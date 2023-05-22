@@ -237,3 +237,30 @@ Rust compares the expression against the pattern and assigns any names it finds.
 Function parameters, let statements, and for loops can only accept irrefutable patterns, because the program cannot do anything meaningful when values don’t match. The if let and while let expressions accept refutable and irrefutable patterns, but the compiler warns against irrefutable patterns because by definition they’re intended to handle possible failure: the functionality of a conditional is in its ability to perform differently depending on success or failure.
 
 Rust allows us to use an irrefutable pattern in a `match` with only one arm, but this syntax isn’t particularly useful and could be replaced with a simpler `let` statement.
+
+**The syntax `_x` still binds the value to the variable, whereas `_` doesn’t bind at all.**
+
+**The downside of this additional expressiveness is that the compiler doesn't try to check for exhaustiveness when match guard expressions are involved.**
+
+```rust
+    let x = 4;
+    let y = false;
+
+    match x {
+        4 | 5 | 6 if y => println!("yes"),
+        _ => println!("no"),
+    }
+```
+
+The important part of this example is that the if y match guard applies to 4, 5, and 6, even though it might look like if y only applies to 6.
+
+## Chapter19 Advanced Features
+
+Those superpowers include the ability to:
+
+- Dereference a raw pointer
+- Call an unsafe function or method
+- Access or modify a mutable static variable
+- Implement an unsafe trait
+- Access fields of `union`s
+
