@@ -1,19 +1,35 @@
-fn main() {
-    let favorite_color: Option<&str> = None;
-    let is_tuesday = false;
-    let age: Result<u8, _> = "34".parse();
+use std::slice;
 
-    if let Some(color) = favorite_color {
-        println!("Using your favorite color, {color}, as the background");
-    } else if is_tuesday {
-        println!("Tuesday is green day!");
-    } else if let Ok(age) = age {
-        if age > 30 {
-            println!("Using purple as the background color");
-        } else {
-            println!("Using orange as the background color");
-        }
-    } else {
-        println!("Using blue as the background color");
+
+fn main() {
+    // let mut v = vec![1, 2, 3, 4, 5, 6];
+
+    // let r = &mut v[..];
+
+    // let (a, b) = my_split_at_mut(r, 7);
+
+    // println!("a: {:?}, b: {:?}", a, b);
+
+
+    let address = 0x01234usize;
+    let r = address as *mut i32;
+
+    let values: &[i32] = unsafe { slice::from_raw_parts_mut(r, 10000) };
+    // println!("{:?}", values);
+
+
+}
+
+fn my_split_at_mut(values: &mut [i32], mid: usize) -> (&mut [i32], &mut [i32]) {
+    let len = values.len();
+    let ptr = values.as_mut_ptr();
+
+    assert!(mid <= len);
+
+    unsafe {
+        (
+            slice::from_raw_parts_mut(ptr, mid),
+            slice::from_raw_parts_mut(ptr.add(mid), len - mid)
+        )
     }
 }

@@ -264,3 +264,15 @@ Those superpowers include the ability to:
 - Implement an unsafe trait
 - Access fields of `union`s
 
+Different from references and smart pointers, raw pointers:
+
+- Are allowed to ignore the borrowing rules by having both immutable and mutable pointers or multiple mutable pointers to the same location
+- Aren't guaranteed to point to valid memory
+- Are allowed to be null
+- Don't implement any automatic cleanup
+
+For this, Rust has the keyword extern that facilitates the creation and use of a *Foreign Function Interface* (FFI).
+
+The "C" part defines which *application binary interface* (ABI) the external function uses: the ABI defines how to call the function at the assembly level.
+
+A subtle difference between constants and immutable static variables is that values in a static variable have a fixed address in memory. Using the value will always access the same data. Constants, on the other hand, are allowed to duplicate their data whenever they’re used. Another difference is that static variables can be mutable. Accessing and modifying mutable static variables is unsafe.
