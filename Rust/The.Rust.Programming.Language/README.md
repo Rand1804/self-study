@@ -276,3 +276,34 @@ For this, Rust has the keyword extern that facilitates the creation and use of a
 The "C" part defines which *application binary interface* (ABI) the external function uses: the ABI defines how to call the function at the assembly level.
 
 A subtle difference between constants and immutable static variables is that values in a static variable have a fixed address in memory. Using the value will always access the same data. Constants, on the other hand, are allowed to duplicate their data whenever they’re used. Another difference is that static variables can be mutable. Accessing and modifying mutable static variables is unsafe.
+
+*Associated types* connect a type placeholder with a trait such that the trait method definitions can use these placeholder types in their signatures.
+
+```rust
+trait Add<Rhs=Self> {
+    type Output;
+
+    fn add(self, rhs: Rhs) -> Self::Output;
+}
+```
+
+You’ll use default type parameters in two main ways:
+
+- To extend a type without breaking existing code
+- To allow customization in specific cases most users won’t need
+
+```rust
+<Type as Trait>::function(receiver_if_method, next_arg, ...);
+```
+
+For associated functions that aren’t methods, there would not be a receiver: there would only be the list of other arguments.
+
+We mentioned the orphan rule that states we’re only allowed to implement a trait on a type if either the trait or the type are local to our crate. It’s possible to get around this restriction using the newtype pattern, which involves creating a new type in a tuple struct.
+
+*thunk* is a word for code to be evaluated at a later time, so it’s an appropriate name for a closure that gets stored.
+
+Functions that return never are called *diverging functions*.
+
+The formal way of describing this behavior is that expressions of type ! can be coerced into any other type.
+
+Rust needs to know how much memory to allocate for any value of a particular type, and **all values of a type must use the same amount of memory.**
