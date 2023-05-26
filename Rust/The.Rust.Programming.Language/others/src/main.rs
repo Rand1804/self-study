@@ -28,20 +28,9 @@ impl fmt::Display for Point {
 }
 
 fn main() {
-    // let mut v = vec![1, 2, 3, 4, 5, 6];
-
-    // let r = &mut v[..];
-
-    // let (a, b) = my_split_at_mut(r, 7);
-
-    // println!("a: {:?}, b: {:?}", a, b);
-
-    let guess = match guess.trim().parse() {
-        Ok(_) => 5,
-        Err(_) => "hello",
-    };
-
-
+    let list_of_numbers = vec![1, 2, 3];
+    let list_of_strings: Vec<String> =
+        list_of_numbers.iter().map(ToString::to_string).collect();
 }
 
 fn my_split_at_mut(values: &mut [i32], mid: usize) -> (&mut [i32], &mut [i32]) {

@@ -85,6 +85,22 @@ The compiler uses three rules to figure out the lifetimes of the references when
 
 **The third rule** is that, if there are multiple input lifetime parameters, but one of them is &self or &mut self because this is a method, the lifetime of self is assigned to all output lifetime parameters. This third rule makes methods much nicer to read and write because fewer symbols are necessary.
 
+```rust
+pub fn notify(item: &(impl Summary + Display)) {}
+
+pub fn notify<T: Summary + Display>(item: &T) {}
+
+fn some_function<T: Display + Clone, U: Clone + Debug>(t: &T, u: &U) -> i32 {}
+
+fn some_function<T, U>(t: &T, u: &U) -> i32
+where
+    T: Display + Clone,
+    U: Clone + Debug,
+{}
+
+fn returns_summarizable() -> impl Summary {}
+```
+
 ## Chapter11 Writing Automated Tests
 
  The derive attribute generates code that will implement a trait with its own default implementation on the type you’ve annotated with the derive syntax.
@@ -307,3 +323,24 @@ Functions that return never are called *diverging functions*.
 The formal way of describing this behavior is that expressions of type ! can be coerced into any other type.
 
 Rust needs to know how much memory to allocate for any value of a particular type, and **all values of a type must use the same amount of memory.**
+
+DSTs: dynamically sized types
+
+As such, we can know the size of a &str value at compile time: it’s twice the length of a usize. That is, we always know the size of a &str, no matter how long the string it refers to is. In general, this is the way in which dynamically sized types are used in Rust: they have an extra bit of metadata that stores the size of the dynamic information. The golden rule of dynamically sized types is that we must always put values of dynamically sized types behind a pointer of some kind.
+
+Unlike closures, fn is a type rather than a trait, so we specify fn as the parameter type directly rather than declaring a generic type parameter with one of the Fn traits as a trait bound.
+
+```rust
+impl<T> Option<T> {
+    pub fn unwrap_or_else<F>(self, f: F) -> T
+    where
+        F: FnOnce() -> T
+    {
+        match self {
+            Some(x) => x,
+            None => f(),
+        }
+    }
+}
+```
+
