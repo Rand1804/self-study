@@ -444,3 +444,38 @@ The with_capacity function performs the same task as Vec::new but with an import
 > A detached thread runs independently of the main thread. Once it's started, it cannot be joined (i.e., you cannot wait for its termination). When a detached thread finishes execution, its resources are automatically released back to the system. Detached threads are useful when you want a task to run in the background without needing to manage or communicate with it further.
 > On the other hand, an undetached (or joinable) thread can be joined by another thread. "Joining" a thread means waiting for it to finish execution. You might want to join a thread if you need to wait for a result it's computing, or if you need to ensure that some action has been completed before proceeding. If a joinable thread finishes execution but is not joined, its state remains (it becomes a "zombie") and its resources are not released back to the system until it is joined.
 > In Rust, all threads are joinable by default. When you spawn a thread, you get a JoinHandle that you can call join on to wait for the thread to finish. If you drop the JoinHandle without calling join, the thread becomes detached.
+
+```rust
+type Job = Box<dyn FnOnce() + Send + 'static>;
+```
+
+> The dyn keyword is necessary because FnOnce() + Send + 'static is a trait, not a type, and we cannot have a Box of a trait directly, because its size is not known at compile time. However, by using `Box<dyn FnOnce() + Send + 'static>`, we tell Rust to store the data on the heap, and keep a pointer to the data that implements these traits. The dyn keyword tells Rust that it will have to determine the exact method to call based on the actual type at runtime (dynamic dispatch).
+
+After creating a new Job instance using the closure we get in execute, we send that job down the sending end of the channel. We’re calling unwrap on send for the case that sending fails. This might happen if, for example, we stop all our threads from executing, meaning the receiving end has stopped receiving new messages. At the moment, we can’t stop our threads from executing: our threads continue executing as long as the pool exists. The reason we use unwrap is that we know the failure case won’t happen, but the compiler doesn’t know that.
+
+Acquiring a lock might fail if the mutex is in a poisoned state, which can happen if some other thread panicked while holding the lock rather than releasing the lock. In this situation, calling unwrap to have this thread panic is the correct action to take. Feel free to change this unwrap to an expect with an error message that is meaningful to you.
+
+```rust
+// Warning: This code compiles and runs but doesn’t result in the desired threading behavior
+
+impl Worker {
+    fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
+        let thread = thread::spawn(move || {
+            while let Ok(job) = receiver.lock().unwrap().recv() {
+                println!("Worker {id} got a job; executing.");
+
+                job();
+            }
+        });
+
+        Worker { id, thread }
+    }
+}
+```
+
+> In Rust, the Mutex type provides a mechanism for ensuring that only one thread accesses some data at any point in time. When a thread locks a mutex (using the lock method), it obtains a MutexGuard object. This object represents the locked mutex and provides access to the data. The mutex stays locked as long as this MutexGuard is around. When the MutexGuard is dropped (goes out of scope), the mutex is automatically unlocked. There is no explicit unlock method; unlocking happens automatically based on the MutexGuard's lifetime.
+> This automatic unlocking can be tricky when combined with Rust's while let construct. The while let construct allows you to loop as long as a certain pattern matches. In the case of while let Ok(job) = receiver.lock().unwrap().recv(), the loop continues as long as recv() returns Ok(job). However, the MutexGuard returned by receiver.lock().unwrap() is kept alive for the entire body of the while let loop, meaning the mutex stays locked for the duration of the job() call.
+> This is different from the let statement version, let job = receiver.lock().unwrap().recv().unwrap(). In this case, the MutexGuard is dropped immediately after the let statement ends, so the mutex is only locked during the call to recv().unwrap(), not during the call to job().
+> The consequence of this is that in the while let version, if job() takes a long time to run, other workers can't receive jobs because the mutex stays locked. In the let statement version, other workers can receive jobs while job() is running, because the mutex is unlocked immediately after receiving a job.
+
+However, **while let (and if let and match)** does not drop temporary values until the end of the associated block.
