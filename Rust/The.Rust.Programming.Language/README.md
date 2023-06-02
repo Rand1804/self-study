@@ -383,3 +383,64 @@ The TokenStream type is defined by the proc_macro crate that is included with Ru
 The returned TokenStream is added to the code that our crate users write, so when they compile their crate, they’ll get the extra functionality that we provide in the modified TokenStream.
 
 Using stringify! also saves an allocation by converting #name to a string literal at compile time.
+
+They’re also more flexible: derive only works for structs and enums; attributes can be applied to other items as well, such as functions.
+
+```rust
+#[route(GET, "/")]
+fn index() {}
+```
+
+The signature of the macro definition function would look like this:
+
+```rust
+#[proc_macro_attribute]
+pub fn route(attr: TokenStream, item: TokenStream) -> TokenStream {}
+```
+
+Here, we have two parameters of type TokenStream. The first is for the contents of the attribute: the `GET`, `"/"` part. The second is the body of the item the attribute is attached to: in this case, `fn index() {}` and the rest of the function’s body.
+
+Function-like macros define macros that look like function calls. Similarly to macro_rules! macros, they’re more flexible than functions; for example, they can take an unknown number of arguments.
+
+```rust
+let sql = sql!(SELECT * FROM posts WHERE id=1);
+```
+
+This macro would parse the SQL statement inside it and check that it’s syntactically correct, which is much more complex processing than a macro_rules! macro can do.
+
+```rust
+#[proc_macro]
+pub fn sql(input: TokenStream) -> TokenStream {}
+```
+
+## Final Project: Building a Multithreaded Web Server
+
+Connecting to port 80 requires administrator privileges (nonadministrators can listen only on ports higher than 1023).
+
+The reason we might receive errors from the incoming method when a client connects to the server is that we’re not actually iterating over connections. Instead, we’re iterating over **connection attempts**. The connection might not be successful for a number of reasons, many of them operating system specific. For example, many operating systems have a limit to the number of simultaneous open connections they can support; new connection attempts beyond that number will produce an error until some of the open connections are closed.
+
+BufReader adds buffering by managing calls to the std::io::Read trait methods for us.
+
+We need to explicitly match on a slice of request_line to pattern match against the string literal values; match doesn’t do automatic referencing and dereferencing like the equality method does.
+
+The F type parameter also has the trait bound Send and the lifetime bound 'static, which are useful in our situation: we need Send to transfer the closure from one thread to another and 'static because we don’t know how long the thread will take to execute.
+
+```rust
+impl ThreadPool {
+    // --snip--
+    pub fn execute<F>(&self, f: F)
+    where
+        F: FnOnce() + Send + 'static,
+    {
+    }
+}
+```
+
+We still use the () after FnOnce because this FnOnce represents a closure that takes no parameters and returns the unit type (). Just like function definitions, the return type can be omitted from the signature, but even if we have no parameters, we still need the parentheses.
+
+The with_capacity function performs the same task as Vec::new but with an important difference: it preallocates space in the vector. Because we know we need to store size elements in the vector, doing this allocation up front is slightly more efficient than using Vec::new, which resizes itself as elements are inserted.
+
+**Note that if the JoinHandle is dropped (i.e., it goes out of scope and is not explicitly joined), then the associated thread will be detached, meaning that it can continue running even if the main thread has finished execution. If the main thread finishes execution before the detached thread, then the process will exit and the detached thread will also stop running.**
+> A detached thread runs independently of the main thread. Once it's started, it cannot be joined (i.e., you cannot wait for its termination). When a detached thread finishes execution, its resources are automatically released back to the system. Detached threads are useful when you want a task to run in the background without needing to manage or communicate with it further.
+> On the other hand, an undetached (or joinable) thread can be joined by another thread. "Joining" a thread means waiting for it to finish execution. You might want to join a thread if you need to wait for a result it's computing, or if you need to ensure that some action has been completed before proceeding. If a joinable thread finishes execution but is not joined, its state remains (it becomes a "zombie") and its resources are not released back to the system until it is joined.
+> In Rust, all threads are joinable by default. When you spawn a thread, you get a JoinHandle that you can call join on to wait for the thread to finish. If you drop the JoinHandle without calling join, the thread becomes detached.
