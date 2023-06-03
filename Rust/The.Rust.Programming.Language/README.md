@@ -479,3 +479,13 @@ impl Worker {
 > The consequence of this is that in the while let version, if job() takes a long time to run, other workers can't receive jobs because the mutex stays locked. In the let statement version, other workers can receive jobs while job() is running, because the mutex is unlocked immediately after receiving a job.
 
 However, **while let (and if let and match)** does not drop temporary values until the end of the associated block.
+
+> In Rust, when the main thread of a program finishes, the whole process is shut down. This includes all threads, regardless of whether they have been detached.
+A detached thread is one that is allowed to run independently from the thread that spawned it. In some languages and systems, this might mean that a detached thread could continue running after the main thread has finished. However, in Rust, this is not the case. When the main thread ends, all threads are stopped, regardless of whether they are detached or not.
+This is why it's important to make sure that all threads have completed their work before the main thread finishes. If you have threads that are running an infinite loop, you need to provide some way for them to be stopped, or else they could be abruptly terminated when the main thread ends.
+
+string in Rust are not null-terminated
+
+> No, the string b"GET / HTTP/1.1\r\n" does not contain a \0 (null) byte.
+The null byte, represented by \0, is used in many programming languages, including C and C++, to mark the end of a string. However, in Rust, strings are not null-terminated, and a null byte is not automatically appended to the end of a string.
+If you want to include a null byte in a byte string, you would need to add it explicitly, like this: b"GET / HTTP/1.1\r\n\0". But in your original string, there is no null byte.
