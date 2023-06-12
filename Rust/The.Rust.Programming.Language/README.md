@@ -303,6 +303,8 @@ trait Add<Rhs=Self> {
 }
 ```
 
+The new part is Rhs=Self: this syntax is called **default type parameters**. The Rhs generic type parameter (short for **“right hand side”**) defines the type of the rhs parameter in the add method.
+
 You’ll use default type parameters in two main ways:
 
 - To extend a type without breaking existing code

@@ -26,13 +26,45 @@ A few novel failure modes are possible in async Rust, for instance if you call a
 
 async transforms a block of code into **a state machine** that implements a trait called Future.
 
+### async/.await Primer
+
+`async/.await` is Rust's built-in tool for writing asynchronous functions that look like synchronous code. async transforms a block of code into a state machine that implements a trait called Future. Whereas calling a blocking function in a synchronous method would block the whole thread, blocked Futures will yield control of the thread, allowing other Futures to run.
+
 ```rust
 async fn do_something() { /* ... */ }
 ```
 
 The value returned by async fn is a Future. For anything to happen, the Future needs to be run on an executor.
 
-Unlike block_on, .await doesn't block the current thread, but instead asynchronously waits for the future to complete, allowing other tasks to run if the future is currently unable to make progress.
+Inside an `async fn`, you can use `.await` to wait for the completion of another type that implements the `Future` trait, such as the output of another `async fn`.
+
+Unlike `block_on`, `.await` doesn't block the current thread, but instead asynchronously waits for the future to complete, allowing other tasks to run if the future is currently unable to make progress.
+
+```rust
+async fn learn_and_sing() {
+    // Wait until the song has been learned before singing it.
+    // We use `.await` here rather than `block_on` to prevent blocking the
+    // thread, which makes it possible to `dance` at the same time.
+    let song = learn_song().await;
+    sing_song(song).await;
+}
+
+async fn async_main() {
+    let f1 = learn_and_sing();
+    let f2 = dance();
+
+    // `join!` is like `.await` but can wait for multiple futures concurrently.
+    // If we're temporarily blocked in the `learn_and_sing` future, the `dance`
+    // future will take over the current thread. If `dance` becomes blocked,
+    // `learn_and_sing` can take back over. If both futures are blocked, then
+    // `async_main` is blocked and will yield to the executor.
+    futures::join!(f1, f2);
+}
+
+fn main() {
+    block_on(async_main());
+}
+```
 
 ## Under the Hood: Executing Futures and Tasks
 
@@ -98,7 +130,7 @@ Secondly, wake: fn() has changed to &mut Context<'_>. In SimpleFuture, we used a
 In a real-world scenario, a complex application like a web server may have thousands of different connections whose wakeups should all be managed separately. The Context type solves this by providing access to a value of type Waker, which can be used to wake up a specific task.
 
 > In the context of asynchronous programming in Rust, a "task" is a top-level future that has been submitted to an executor. You can think of a task as a unit of work that the executor manages and schedules for execution.
-An executor is a type of task scheduler. It is responsible for running tasks. Executors handle the low-level details of scheduling, including managing threads, handling I/O events, and waking up tasks when they're ready to make progress.
+An executor is a type of task scheduler. It is responsible for running tasks. Executors handle the low-level details of scheduling, including *managing threads*, handling I/O events, and waking up tasks when they're ready to make progress.
 A future represents a computation that may not have completed yet. When a future is submitted to an executor, it becomes a task. The executor will repeatedly poll the task's future to try to make progress on it. When the future can't make progress (because it's waiting for I/O, a timer, or another future, for example), it can use a `Waker` to tell the executor to wake up the task later.
 The `Waker` is passed to the future every time it's polled, and it's specific to the task. When the future is ready to make progress again, it can call `wake()` on the `Waker` to tell the executor to wake up the task. The executor will then start polling the task's future again.
 So, in short, a "task" in Rust's async programming model is a future that's being managed by an executor, and it represents a unit of work that the executor should run.
@@ -106,3 +138,47 @@ So, in short, a "task" in Rust's async programming model is a future that's bein
 Rust's Futures are lazy: they won't do anything unless actively driven to completion. One way to drive a future to completion is to .await it inside an async function, but that just pushes the problem one level up: who will run the futures returned from the top-level async functions? The answer is that we need a Future executor.
 
 Future executors take a set of top-level Futures and run them to completion by calling poll whenever the Future can make progress. Typically, an executor will poll a future once to start off. When Futures indicate that they are ready to make progress by calling wake(), they are placed back onto a queue and poll is called again, repeating until the Future has completed.
+
+### executor
+
+Our executor will work by sending tasks to run over a channel. The executor will pull events off of the channel and run them. When a task is ready to do more work (is awoken), it can schedule itself to be polled again by putting itself back onto the channel.
+
+### Executors and System IO
+
+In practice, this problem is solved through integration with an IO-aware system blocking primitive, such as epoll on Linux, kqueue on FreeBSD and Mac OS, IOCP on Windows, and ports on Fuchsia (all of which are exposed through the cross-platform Rust crate `mio`).
+
+## async/.await
+
+```rust
+
+// `foo()` returns a type that implements `Future<Output = u8>`.
+// `foo().await` will result in a value of type `u8`.
+async fn foo() -> u8 { 5 }
+
+fn bar() -> impl Future<Output = u8> {
+    // This `async` block results in a type that implements
+    // `Future<Output = u8>`.
+    async {
+        let x: u8 = foo().await;
+        x + 5
+    }
+}
+```
+
+As we saw in the first chapter, async bodies and other futures are *lazy*: they do nothing until they are run. The most common way to run a Future is to .await it. When .await is called on a Future, it will attempt to run it to completion. If the Future is blocked, it will yield control of the current thread. When more progress can be made, the Future will be picked up by the executor and will resume running, allowing the .await to resolve.
+
+Unlike traditional functions, async fns which take references or other non-'static arguments return a Future which is bounded by the lifetime of the arguments:
+
+```rust
+// This function:
+async fn foo(x: &u8) -> u8 { *x }
+
+// Is equivalent to this function:
+fn foo_expanded<'a>(x: &'a u8) -> impl Future<Output = u8> + 'a {
+    async move { *x }
+}
+```
+
+## Pinning
+
+Pinning makes it possible to guarantee that an object implementing !Unpin won't ever be moved.
