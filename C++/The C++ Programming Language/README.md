@@ -23,11 +23,11 @@ A char variable is of the natural size to hold a character on a given machine (t
 
 Don’t introduce a name until you have a suitable value for it.
 
-To match the << output operator (**‘‘put to’’**), the >> operator (**‘‘get from’’**) is used for input; cin is the standard input stream.
+> To match the << output operator (**‘‘put to’’**), the >> operator (**‘‘get from’’**) is used for input; cin is the standard input stream.
 
-In declarations, [] means **‘‘array of’’** and ∗ means **‘‘pointer to.’’**
+> In declarations, [] means **‘‘array of’’** and ∗ means **‘‘pointer to.’’**
 
-In an expression, prefix unary ∗ means **‘‘contents of’’** and prefix unary & means **‘‘address of.’’**
+> In an expression, prefix unary ∗ means **‘‘contents of’’** and prefix unary & means **‘‘address of.’’**
 
 ```cpp
 void copy_fct()
@@ -40,7 +40,7 @@ void copy_fct()
 }
 ```
 
-This for-statement can be read as ‘‘set i to zero; while i is not 10, copy the ith element and increment i.’’
+> This for-statement can be read as ‘‘set i to zero; while i is not 10, copy the ith element and increment i.’’
 
 ```cpp
 void print()
@@ -54,7 +54,7 @@ void print()
 }
 ```
 
-The first range-for-statement can be read as ‘‘for every element of v, from the first to the last, place a copy in x and print it.’’
+> The first range-for-statement can be read as ‘‘for every element of v, from the first to the last, place a copy in x and print it.’’
 
 ```cpp
 void increment()
@@ -66,7 +66,7 @@ void increment()
 }
 ```
 
-In a declaration, the unary suffix & means **‘‘reference to.’’** A reference is similar to a pointer, except that you don’t need to use a prefix ∗ to access the value referred to by the reference. Also, a reference cannot be made to refer to a different object after its initialization.
+> In a declaration, the unary suffix & means **‘‘reference to.’’** A reference is similar to a pointer, except that you don’t need to use a prefix ∗ to access the value referred to by the reference. Also, a reference cannot be made to refer to a different object after its initialization.
 
 When used in declarations,operators (such as &, ∗, and []) are called *declarator operators*:
 
@@ -91,4 +91,50 @@ However, using *nullptr* eliminates potential confusion between integers (such a
 
 We call the types that can be built from the fundamental types, the const modifier, and the declarator operators *built-in types*.
 
-The new operator allocates memory from an area called the free store (also known as dynamic memory and heap;)
+> The **new** operator allocates memory from an area called the free store (also known as dynamic memory and heap;)
+
+```cpp
+void f(Vector v, Vector& rv, Vector∗ pv)
+{
+    int i1 = v.sz; // access through name
+    int i2 = rv.sz; // access through reference
+    int i4 = pv−>sz; // access through pointer
+}
+```
+
+> We use `.` (dot) to access struct members through a name (and through a reference) and `−>` to access struct members through a pointer.
+
+To do that we have to distinguish between the interface to a type (to be used by all) and its implementation (which has access to the otherwise inaccessible data).
+
+The language mechanism for that is called a **class**. A class is defined to have a set of members, which can be data, function, or type members. The interface is defined by the **public** members of a class, and **private** members are accessible only through that interface. For example:
+
+```cpp
+class Vector {
+    public:
+        Vector(int s) :elem{new double[s]}, sz{s} { } // construct a Vector
+        double& operator[](int i) { return elem[i]; } // element access: subscripting
+        int size() { return sz; }
+    private:
+        double∗ elem; // pointer to the elements
+        int sz; // the number of elements
+};
+```
+
+Basically, the Vector object is a ‘‘handle’’ containing a pointer to the elements (elem) plus the number of elements (sz).
+
+However, the Vector object itself is always the same size. This is the basic technique for handling varying amounts of information in C++: a fixed-size handle referring to a variable amount of data ‘‘elsewhere’’ (e.g., on the free store allocated by new; §11.2).
+
+> A ‘‘function’’ with the same name as its class is called a **constructor**, that is, a function used to construct objects of a class.
+
+Unlike an ordinary function, a constructor is guaranteed to be used to initialize objects of its class. Thus, defining a constructor eliminates the problem of uninitialized variables for a class.
+
+The constructor initializes the Vector members using **a member initializer list**:
+
+```cpp
+:elem{new double[s]}, sz{s}
+```
+
+That is, we first initialize elem with a pointer to s elements of type double obtained from the free store. Then, we initialize sz to s.
+
+Access to elements is provided by **a subscript function**, called operator[]. It returns a reference to the appropriate element (a double&).
+
