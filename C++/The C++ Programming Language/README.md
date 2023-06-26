@@ -1,6 +1,6 @@
 # The C++ Programming Language
 
-## PartI Introduction
+## 2. A Tour of C++: The Basics
 
 ### 2.2 The Basics
 
@@ -131,10 +131,45 @@ Unlike an ordinary function, a constructor is guaranteed to be used to initializ
 The constructor initializes the Vector members using **a member initializer list**:
 
 ```cpp
-:elem{new double[s]}, sz{s}
+Vector(int s) :elem{new double[s]}, sz{s} { }
 ```
 
 That is, we first initialize elem with a pointer to s elements of type double obtained from the free store. Then, we initialize sz to s.
 
 Access to elements is provided by **a subscript function**, called operator[]. It returns a reference to the appropriate element (a double&).
 
+This declaration would be placed in a file Vector.h, and users will *include* that file, called a *header file*, to access that interface.
+
+### 2.4.3.1 Exceptions
+
+The **out_of_range** type is defined in the standard library and is in fact used by some standard-library container access functions.
+
+### 2.6 Advice
+
+[1] Don’t panic! All will become clear in time; §2.1.
+[2] You don’t hav e to know every detail of C++ to write good programs; §1.3.1.
+[3] Focus on programming techniques, not on language features; §2.1.
+
+## 3. A Tour of C++: Abstraction Mechanisms
+
+```cpp
+class Vector {
+    private:
+        double∗ elem; // elem points to an array of sz doubles
+        int sz;
+    public:
+        Vector(int s) :elem{new double[s]}, sz{s} // constructor: acquire resources
+        {
+            for (int i=0; i!=s; ++i) elem[i]=0; // initialize elements
+        }
+
+        ˜Vector() { delete[] elem; } // destructor: release resources
+        
+        double& operator[](int i);
+        int size() const;
+};
+```
+
+> We need a mechanism to ensure that the memory allocated by the constructor is deallocated; that mechanism is a **destructor**: The name of a destructor is the complement operator, ˜, followed by the name of the class; it is the complement of a constructor.
+
+This handle-to-data model is very commonly used to manage data that can vary in size during the lifetime of an object. The technique of acquiring resources in a constructor and releasing them in a destructor, known as Resource Acquisition Is Initialization or RAII, allows us to eliminate ‘‘naked new operations,’’ that is, to avoid allocations in general code and keep them buried inside the implementation of well-behaved abstractions.
