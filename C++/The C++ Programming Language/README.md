@@ -173,3 +173,10 @@ class Vector {
 > We need a mechanism to ensure that the memory allocated by the constructor is deallocated; that mechanism is a **destructor**: The name of a destructor is the complement operator, ˜, followed by the name of the class; it is the complement of a constructor.
 
 This handle-to-data model is very commonly used to manage data that can vary in size during the lifetime of an object. The technique of acquiring resources in a constructor and releasing them in a destructor, known as Resource Acquisition Is Initialization or RAII, allows us to eliminate ‘‘naked new operations,’’ that is, to avoid allocations in general code and keep them buried inside the implementation of well-behaved abstractions.
+
+## 6. Types and Declarations
+
+### 6.2 Types
+
+The Boolean, character, and integer types are collectively called **integral types**. The integral and floating-point types are collectively called **arithmetic types**. Enumerations and classes (Chapter 16) are called **user-defined** types because they must be defined by users rather than being available for use without previous declaration, the way fundamental types are. In contrast, fundamental types, pointers, and references are collectively referred to as **built-in types**. The standard library provides many user-defined types.
+
