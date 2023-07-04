@@ -195,3 +195,54 @@ void f(int∗ pi)
     
 }
 ```
+
+Taking a pointer to the element **one beyond the end** of an array is guaranteed to work. This is important for many algorithms (§4.5, §33.1). However, since such a pointer does not in fact point to an element of the array, it may not be used for reading or writing. The result of taking the address of the element before the initial element or beyond one-past-the-last element is undefined and should be avoided. For example:
+
+```cpp
+int∗ p4 = v−1; // before the beginning, undefined: don’t do it
+int∗ p5 = v+7; // beyond the end, undefined: don’t do it
+```
+
+The implicit conversion of an array name to a pointer to the initial element of the array is extensively used in function calls in C-style code. For example:
+
+```cpp
+extern "C" int strlen(const char∗); // from <string.h>
+void f()
+{
+    char v[] = "Annemarie";
+    char∗ p = v; // implicit conversion of char[] to char*
+    strlen(p);
+    strlen(v); // implicit conversion of char[] to char*
+    v = p; // error: cannot assign to array
+}
+```
+
+The implicit conversion of the array argument to a pointer means that the size of the array is lost to the called function.
+
+Subscripting a built-in array is defined in terms of the pointer operations + and ∗. For every built-in array a and integer j within the range of a, we have:
+`a[j] == ∗(&a[0]+j) == ∗(a+j) == ∗(j+a) == j[a]`
+
+When using a pointer, two objects are involved: the pointer itself and the object pointed to. ‘‘Prefixing’’ a declaration of a pointer with const makes the object, but not the pointer, a constant. To declare a pointer itself, rather than the object pointed to, to be a constant, we use the declarator operator `∗const` instead of plain `∗`. For example:
+
+```cpp
+void f1(char∗ p)
+{
+    char s[] = "Gorm"; 
+
+    const char∗ pc = s; // pointer to constant
+    pc[3] = 'g'; // error : pc points to constant
+    pc = p;     // OK
+    
+
+    char ∗const cp = s; // constant pointer
+    cp[3] = 'a'; // OK
+    cp = p; // error : cp is constant
+
+
+    const char ∗const cpc = s; // const pointer to const
+    cpc[3] = 'a'; // error : cpc points to constant
+    cpc = p; // error : cpc is constant
+}
+```
+
+The declarator operator that makes a pointer constant is ∗const. There is no const∗ declarator operator, so a const appearing before the ∗ is taken to be part of the base type.
