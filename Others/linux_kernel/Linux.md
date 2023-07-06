@@ -133,6 +133,8 @@ int inet_pton(int af, const char *src, void *dst);
 
 ### TCP编程api
 
+1.socket()
+
 ```c
 #include <sys/socket.h>
 
@@ -157,3 +159,74 @@ RETURN VALUE
        On  success,  a file descriptor for the new socket is returned.  On error, -1 is
        returned, and errno is set to indicate the error.
     成功时返回文件描述符，出错时返回为-1
+
+2.bind()
+
+```c
+       #include <sys/socket.h>
+
+       int bind(int sockfd, const struct sockaddr *addr,
+                socklen_t addrlen);
+```
+
+参数：
+    sockfd: 通过socket()函数拿到的fd
+    addr： 采用struct sockaddr的结构体变量的地址
+    addrlen： 地址长度
+
+3.listen()
+
+```c
+       #include <sys/socket.h>
+
+       int listen(int sockfd, int backlog);
+```
+
+参数：
+    sockfd：通过socket()函数拿到的fd
+    backlog:同时允许几路客户端和服务器进行正在连接的过程（正在三次握手）
+            一般填5,测试得知，ARM最大为8
+> 内核中服务器的套接字fd会维护2个链表
+    1.正在三次握手的客户端链表（数量=2*backlog+1）
+    2.已经建立好连接的客户端链表（已经完成3次握手分配好了newfd）
+
+返回值：
+    RETURN VALUE
+       On success, zero is returned.  On error, -1 is returned, and errno is set to indicate the error.
+
+4.accept() 阻塞等待客户端连接请求
+
+```c
+       #include <sys/socket.h>
+
+       int accept(int sockfd, struct sockaddr *_Nullable restrict addr,
+                  socklen_t *_Nullable restrict addrlen);
+```
+
+参数：
+    sockfd: 经过前面socket()创建并通过bind(),listen(),设置过的fd
+    addr和addrlen:
+
+返回值：
+    RETURN VALUE
+       On  success,  these  system calls return a file descriptor for the accepted socket (a nonnegative integer).  On error, -1 is returned, errno is set to indicate the error, and addrlen is left  unchanged.
+
+5.客户端的连接函数
+
+```c
+       #include <sys/socket.h>
+
+       int connect(int sockfd, const struct sockaddr *addr,
+                   socklen_t addrlen);
+```
+
+connect()函数和服务器bind()函数类似
+
+返回值
+RETURN VALUE
+       If the connection or binding succeeds, zero is returned.  On error, -1 is returned, and errno is set to indicate the error.
+
+参数：
+    sockfd: 通过socket()函数拿到的fd
+    addr： 采用struct sockaddr的结构体变量的地址
+    addrlen： 地址长度
