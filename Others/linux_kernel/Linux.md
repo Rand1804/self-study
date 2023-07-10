@@ -125,11 +125,36 @@ int inet_pton(int af, const char *src, void *dst);
 
 特点： 1.适用于IPV4和IPV6
         2.能正确的处理255.255.255.255的转换问题
-        3.return 1 表示成功
 参数：
     1.af:地址协议族（AF_INET或AF_INET6）
     2.src:是一个指针（填写点分形式的IP地址[主要指IPV4]）
     3.dst:转换的结果给到dst
+
+RETURN VALUE
+       inet_pton() returns 1 on  success  (network  address  was  successfully  con‐
+       verted).  0 is returned if src does not contain a character string represent‐
+       ing a valid network address in the specified address family.  If af does  not
+       contain  a valid address family, -1 is returned and errno is set to EAFNOSUP‐
+       PORT.
+
+inet_ntop(): 把IPV4/IPV6的网络字节序的地址变成本地的字符串形式的IP地址
+
+```c
+const char *inet_ntop(int af, const void *restrict src,
+                        char dst[restrict .size], socklen_t size);
+```
+特点： 1.适用于IPV4和IPV6
+        2.能正确的处理255.255.255.255的转换问题
+参数：
+    1.af:地址协议族（AF_INET或AF_INET6）
+    2.src:是一个指针（32位网络字节序的IP地址）
+    3.dst:输出结果为点分形式的IP地址[主要指IPV4]
+
+RETURN VALUE
+       On  success, inet_ntop() returns a non-null
+       pointer to dst.  NULL is returned if  there
+       was  an  error,  with errno set to indicate
+       the error.
 
 ### TCP编程api
 

@@ -14,7 +14,7 @@
 #include <arpa/inet.h>
 
 #define SERV_PORT 5001
-#define SERV_IP_ADDR "192.168.7.246"
+#define SERV_IP_ADDR "192.168.3.86"
 #define BACKLOG 5
 #define QUIT_STR "quit"
 
