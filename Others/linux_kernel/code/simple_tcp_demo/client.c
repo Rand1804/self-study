@@ -1,9 +1,21 @@
 #include "net.h"
 
+void usage(char *s) {
+    printf("\n%s <serv_ip> <serv_port>", s);
+    printf("\n\t serv_ip: server ip address");
+    printf("\n\t serv-port: server port(>5000)\n\n");
+}
 
-int main() {
+int main(int argc, char **argv) {
     int fd = -1;
     struct sockaddr_in sin;
+    int port;
+
+    if (argc != 3) {
+        usage(argv[0]);
+        exit(1);
+    }
+
 
     /* Create a socket descriptor */
     if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -11,14 +23,21 @@ int main() {
         exit(1);
     }
 
+    port = atoi(argv[2]);
+
+    if (port < 5000) {
+        usage(argv[0]);
+        exit(1);
+    }
+
     /* Connect to the server */
     bzero(&sin, sizeof(sin));
     sin.sin_family = AF_INET;
-    sin.sin_port = htons(SERV_PORT);
+    sin.sin_port = htons(port);
 #if 0
     sin.sin_addr = inet_addr(SERV_IP_ADDR);
 #else
-    if (inet_pton(AF_INET, SERV_IP_ADDR, (void *) &sin.sin_addr.s_addr) != 1) {
+    if (inet_pton(AF_INET, argv[1], (void *) &sin.sin_addr.s_addr) != 1) {
         perror("inet_pton");
         exit(1);
     }

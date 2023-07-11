@@ -255,3 +255,77 @@ RETURN VALUE
     sockfd: 通过socket()函数拿到的fd
     addr： 采用struct sockaddr的结构体变量的地址
     addrlen： 地址长度
+
+6.网络发送和接受数据
+网络发送数据：send()/write()
+
+```c
+    #include <sys/socket.h>
+    ssize_t send(int sockfd, const void buf[.len], size_t len, int flags);
+
+    #include <unistd.h>
+    ssize_t write(int fd, const void buf[.count], size_t count);
+```
+
+send()比write()多一个参数:
+    flags:
+    一般填写0,此时和write()作用一样
+    MSG_DONWAIT: 当内核缓冲区满的时候默认阻塞，该宏取消阻塞 Enables  nonblocking  operation;
+    MSG_OOB: 用于发送TCP类型的带外数据(out-of-band)
+
+网络中接收数据： recv()/read()
+
+```c
+    #include <sys/socket.h>
+    ssize_t recv(int sockfd, void buf[.len], size_t len,
+                    int flags);
+
+    #include <unistd.h>
+    ssize_t read(int fd, void buf[.count], size_t count);
+```
+
+recv()比read()多一个参数:
+    flags:
+    一般填写0,此时和read()作用一样
+    MSG_DONWAIT: 当内核缓冲区满的时候默认阻塞，该宏取消阻塞 Enables  nonblocking  operation;
+    MSG_OOB: 用于发送TCP类型的带外数据(out-of-band)
+    MSG_PEEK:读取数据之后不将其从内核缓冲区中移除，再次读取和第一次读取数据一样
+
+### UDP编程api
+
+UDP编程应用：实时的音视频传输，DNS的域名解析包
+
+1.sendto()
+```c
+    #include <sys/socket.h>
+    ssize_t sendto(int sockfd, const void buf[.len], size_t len, int flags,
+                    const struct sockaddr *dest_addr, socklen_t addrlen);
+```
+
+2.recvfrom()
+```c
+    #include <sys/socket.h>
+    ssize_t recvfrom(int sockfd, void buf[restrict .len], size_t len,
+                    int flags,
+                    struct sockaddr *_Nullable restrict src_addr,
+                    socklen_t *_Nullable restrict addrlen);
+```
+
+## 多路复用
+
+基本常识：
+    linux中每个进程最多可以打开1024个文件，最多有1024个文件描述符
+    文件描述符的特点：
+        1. 非负整数
+        2. 从最小可用的数字来分配
+        3. 每个进程启动时默认打开0,1,2三个文件描述符（标准输入，标准输出，标准错误输出）
+多路复用针对不止套接字fd,也针对普通文件描述符
+    fd_set (maxfd + 1) 取最小的4个字节的整数倍
+
+步骤：
+
+1. 把关心的文件描述符加入到集合中(fd_set)
+2. 调用selet()/poll()函数去阻塞等待集合fd_set中的一个或多个文件描述符中有数据
+3. 当有数据时，退出selet()阻塞
+4. 依次判断哪个文件描述符有数据
+5. 依次处理有数据的文件描述符的数据
