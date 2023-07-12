@@ -325,7 +325,35 @@ UDP编程应用：实时的音视频传输，DNS的域名解析包
 步骤：
 
 1. 把关心的文件描述符加入到集合中(fd_set)
-2. 调用selet()/poll()函数去阻塞等待集合fd_set中的一个或多个文件描述符中有数据
-3. 当有数据时，退出selet()阻塞
+2. 调用select()/poll()函数去阻塞等待集合fd_set中的一个或多个文件描述符中有数据
+3. 当有数据时，退出select()阻塞
 4. 依次判断哪个文件描述符有数据
 5. 依次处理有数据的文件描述符的数据
+
+```c
+void FD_ZERO(fd_set *fdset);    // 清零集合
+void FD_SET(int fd, fd_set *fdset); // 把fd加入集合
+void FD_CLR(int fd, fd_set *fdset); // 从集合中清除fd
+int FD_ISSET(int fd, fd_set *fdset);    // 判断fd是否在set中
+
+int select(int nfds, fd_set *_Nullable restrict readfds,
+            fd_set *_Nullable restrict writefds,
+            fd_set *_Nullable restrict exceptfds,
+            struct timeval *_Nullable restrict timeout);
+
+struct timeval {
+    long tv_sec;    /* seconds */
+    long tv_usec;   /* microseconds */
+}
+```
+
+参数：
+    nfds： 最大的文件描述符加1
+    readfds: 读集合
+    writefds： 写集合
+    exceptfds： 异常集合
+    timeout： 超时
+
+    一般：填读集合，写集合填NULL，异常集合（带外数据）一般填NULL,
+
+调用select()函数后，fd_set由之前用户设置的要监控的文件描述符集合，内核改为有数据的文件描述符集合（为设置集合的子集）
