@@ -14,7 +14,7 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 
-#define SERV_PORT 5002
+#define SERV_PORT 5004
 #define BACKLOG 5
 #define QUIT_STR "quit"
 

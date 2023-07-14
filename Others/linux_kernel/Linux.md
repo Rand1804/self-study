@@ -98,7 +98,7 @@ IPV4地址：
     powerpc/mips, ARM作为路由器时，大端模式
 
     网络传输的时候采用大端模式
-
+    
     本地字节序，网络字节序
 
 - 主机字节序到网络字节序
@@ -357,3 +357,18 @@ struct timeval {
     一般：填读集合，写集合填NULL，异常集合（带外数据）一般填NULL,
 
 调用select()函数后，fd_set由之前用户设置的要监控的文件描述符集合，内核改为有数据的文件描述符集合（为设置集合的子集）
+
+## wireshark抓包工具
+
+![undefined](https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Ethernet_Type_II_Frame_format.svg/1920px-Ethernet_Type_II_Frame_format.svg.png)
+
+MAC地址为48位全球唯一的地址
+
+[Ethernet frame](https://en.wikipedia.org/wiki/Ethernet_frame)
+
+![image-20230713221612029](/home/wuwt/code/self-study/Others/linux_kernel/assets/image-20230713221612029.png)
+
+[Internet Protocol version 4](https://en.wikipedia.org/wiki/Internet_Protocol_version_4)
+
+![IPv4_Packet-en](/home/wuwt/code/self-study/Others/linux_kernel/assets/IPv4_Packet-en.svg)
+

@@ -1,4 +1,6 @@
 #include "net.h"
+#include <sys/select.h>
+
 
 void usage(char *s) {
     printf("\n%s <serv_ip> <serv_port>", s);
@@ -48,17 +50,58 @@ int main(int argc, char **argv) {
         exit(1);
     }
         
-    
+    fd_set rset;
+    int maxfd = -1;
+    struct timeval tout;
     char buf[BUFSIZ];
+    int ret = -1;
+
     while(1) {
-        bzero(buf, BUFSIZ);
-        if(fgets(buf, BUFSIZ-1, stdin) == NULL)
-            continue;
-        write(fd, buf, strlen(buf));
-        printf("%d", sizeof(QUIT_STR));
-        if (!strncasecmp(buf, QUIT_STR, sizeof(QUIT_STR)-1)) {
-            printf("Client is exiting!\n");
-            break;
+        FD_ZERO(&rset);
+        FD_SET(STDIN_FILENO, &rset);
+        FD_SET(fd, &rset);
+        maxfd = fd;
+        tout.tv_sec = 5;
+        tout.tv_usec = 0;
+
+        select(maxfd+1, &rset, NULL, NULL, &tout);
+        if (FD_ISSET(STDIN_FILENO, &rset)) {
+            bzero(buf, BUFSIZ);
+            do {
+                ret = read(STDIN_FILENO, buf, BUFSIZ-1);
+            } while(ret < 0 && EINTR == errno);
+            if (ret < 0) {
+                perror("read");
+                continue;
+            }
+            if (!ret) continue;
+            if (write(fd, buf, strlen(buf)) < 0) {
+                perror("write() to socket");
+                continue;
+            }
+
+            if (!strncasecmp(buf, QUIT_STR, strlen(QUIT_STR))) {
+                printf("Client is exiting!\n");
+                break;
+            }
+        }
+        if (FD_ISSET(fd, &rset)) {
+            bzero(buf, BUFSIZ);
+            do {
+                ret = read(STDIN_FILENO, buf, BUFSIZ-1);
+            } while(ret < 0 && EINTR == errno);
+            if (ret < 0) {
+                perror("read");
+                continue;
+            }
+            if (!ret) break;
+
+            // There is a BUG, FIXME!!
+            printf("server said: %s\n", buf);
+            if (!strncasecmp(buf, QUIT_STR, strlen(QUIT_STR))) {
+                printf("Sender Client is exiting!\n");
+                break;
+            }
         }
     }
 
