@@ -360,6 +360,8 @@ struct timeval {
 
 ## wireshark抓包工具
 
+### Ethernet头
+
 ![undefined](https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/Ethernet_Type_II_Frame_format.svg/1920px-Ethernet_Type_II_Frame_format.svg.png)
 
 MAC地址为48位全球唯一的地址
@@ -368,7 +370,68 @@ MAC地址为48位全球唯一的地址
 
 ![image-20230713221612029](/home/wuwt/code/self-study/Others/linux_kernel/assets/image-20230713221612029.png)
 
+### IP头
+
 [Internet Protocol version 4](https://en.wikipedia.org/wiki/Internet_Protocol_version_4)
 
 ![IPv4_Packet-en](/home/wuwt/code/self-study/Others/linux_kernel/assets/IPv4_Packet-en.svg)
+
+### TCP头
+
+[Transmission Control Protocol](https://en.wikipedia.org/wiki/Transmission_Control_Protocol)
+
+TCP是一种**面向连接的，可靠的**数据传输
+
+![image-20230717011232669](/home/wuwt/code/self-study/Others/linux_kernel/assets/image-20230717011232669.png)
+
+一 TCP的可靠传输：通过确认和重发机制
+
+	1. TCP把所有要发送的数据进行编号（每一个字节用一个号）
+	1. 发送时从当前的数据位置，发送window大小的数据
+
+二 面向连接
+
+![TCP_CLOSE](/home/wuwt/code/self-study/Others/linux_kernel/assets/TCP_CLOSE.svg)
+
+![image-20230717035926654](/home/wuwt/code/self-study/Others/linux_kernel/assets/image-20230717035926654.png)
+
+三次、四次握手注意点：
+
+1. 一定标注客户端和服务器
+2. 三次握手的连接必须是由客户端发起（四次握手客户端和服务器都可以发起）
+3. SYN, ACK, FIN等标志符号应该写上
+4. 建立连接必须是三次握手，关闭连接三四都可
+
+## 网络属性的设置
+
+```c
+       #include <sys/socket.h>
+
+       int getsockopt(int sockfd, int level, int optname,
+                      void optval[restrict *.optlen],
+                      socklen_t *restrict optlen);
+       int setsockopt(int sockfd, int level, int optname,
+                      const void optval[.optlen],
+                      socklen_t optlen);
+```
+
+level指定控制套接字的层次，可以取三种值：
+
+​	1） SOL_SOCKET: 通用套接字选项 （应用层）
+
+​	2） IPPROTO_TCP：TCP选项	（传输层）
+
+​	3） IPPROTO_IP: IP选项	（网络层）
+
+​	optname指定控制的方式（选项的名称）
+
+![image-20230717054818559](/home/wuwt/code/self-study/Others/linux_kernel/assets/image-20230717054818559.png)
+
+举例：
+
+```c	
+/* 允许绑定地址快速重用 */
+int b_reuse = 1;
+setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &b_reuse, sizeof(int));
+```
 
