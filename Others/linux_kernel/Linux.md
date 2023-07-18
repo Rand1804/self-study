@@ -435,3 +435,195 @@ int b_reuse = 1;
 setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &b_reuse, sizeof(int));
 ```
 
+```c
+       struct timeval {
+           time_t      tv_sec;         /* seconds */
+           suseconds_t tv_usec;        /* microseconds */
+       };
+```
+
+举例：
+
+```c
+/* 广播数据 */
+int b_br = 1;
+setsockopt(fd, SOL_SOCKET, SO_BROADCAST, &b_br, sizeof(int));
+
+/* 设置接收超时 */
+struct timeval tout;
+tout.tv_sec = 5;
+tout.tv_usec = 0;
+setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tout, sizeof(struct timeval));
+```
+
+## 网络超时优化
+
+### 方法1：设置socket的属性SO_RCVTIMEO
+
+```C
+struct timeval tv;
+tv.tv_sec = 5;
+tv.tv_usec = 0;
+// 设置接收超时
+setsockopt(sockfd, SOL_SOCKET, SO_REVTIMEO, &tv, sizeof(tv));
+// 从socket读取数据
+recv()/recvfrom()	
+```
+
+### 方法二：用select检测socket是否'ready'
+
+```c
+struct fd_set rdfs;
+while(1) {
+    struct timeval tv = {5, 0};
+    FD_ZERO(&rdfs);
+    FD_SET(sockfd, &rdfs);
+    if (select(sockfd+1, &rdfs, NULL, NULL, &tv) > 0) {
+        recv()/recvfrom()
+    }
+}
+```
+
+### 方法三：设置定时器（timer），捕捉SIGALRM信号
+
+```C
+viod handler(int signo)	{return;}
+
+struct sigaction act;
+sigaction(SIGALRM, NULL, &act);
+act.sa_handler = handler;
+act.sa_flags &= ~SA_RESTART; //清楚掉SIGALRM信号的SA_RESTART
+sigaction(SIGALRM, &act, NULL);
+alarm(5);
+if (recv(...) < 0) ...
+```
+
+## 心跳检测
+
+### 方法一：数据交互双方隔一段时间一方发送一点数据到对方
+
+对方给出特定的应答。如超过设定次数大小的时间内还是没有应答，这时候认为异常
+
+### 方法二：改变套接字的属性来实现
+
+```c
+int keepAlive = 1;	// 设定KeepAlive
+int keepIdle = 5;	// 开始首次KeepAlive探测前的TCP空闭时间
+int keepInterval = 5;	// 两次KeepAlive探测的时间间隔
+int keepCount = 3;	// 判定断开前的KeepAlive探测次数
+
+setKeepAlive(newfd, keepAlive, keepIdle, keepInterval, keepCount)
+    
+void setKeepAlive(int sockfd, int attr_on, socklen_t idle_time, socklen_t interval, socklen_t cnt) {
+    setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, (const char *)&attr_on, sizeof(attr_on));
+    setsockopt(sockfd, SOL_TCP, TCP_KEEPIDLE, (const char *)&idle_time, sizeof(idle_time));
+    setsockopt(sockfd, SOL_TCP, TCP_KEEPINTVL, (const char *)&interval, sizeof(interval));
+    setsockopt(sockfd, SOL_TCP, TCP_KEEPCNT, (const char *)&cnt, sizeof(cnt));
+}
+```
+
+## 广播
+
+- 前面介绍的数据包发送方式只有一个接收方，称为单播
+- 如果同时发送给局域网中的所有主机，称为广播
+- 只有用户数据报（使用UDP协议）套接字才能广播
+- 广播地址
+  - 以192.168.1.0(255.255.255.0)网段为例，最大的主机地址192.168.1.255代表该网段的广播地址
+  - 发送到该地址的数据包被所有的主机接收
+  - 255.255.255.255在所有网段中都代表广播地址
+
+### 广播发送
+
+- 创建用户数据报套接字	`fd = socket(AF_INET, SOCK_DGRAM, 0)`
+- 缺省创建的套接字不允许广播数据包，需要设置属性
+- 接收方地址指定为广播地址
+- 指定端口信息，发送数据包
+
+### 广播接收
+
+- 创建用户数据报套接字
+- 绑定本机IP地址和端口
+  - 绑定的端口必须和发送方指定的端口相同
+- 等待接收数据
+
+```c
+/* 广播数据 */
+int b_br = 1;
+setsockopt(fd, SOL_SOCKET, SO_BROADCAST, &b_br, sizeof(int));
+```
+
+### 组播
+
+- 单播方式只能发给一个接收方
+- 广播方式发送给所有主机，过多的广播会大量占用网络带宽，造成广播风暴，影响正常的通信
+- 组播（又称为多播）是一种折中的方式，只有加入某个多组播的主机才能收到数据
+- 多播方式既可以发给多个主机，又能避免像广播那样带来过多的负载（每台主机要到传输层才能判断广播包是否要处理）
+
+组播的IP地址：224.0.0.1～239.255.255.254（中间除掉广播）
+
+
+
+```c
+struct ip_mreq {
+    struct in_addr imr_multiaddr;
+    struct in_addr imr_interface;
+};
+
+/* 加入多播组 */
+struct ip_mreq mreq;
+bzero(&mreq, sizeof(mreq));
+mreq.imr_multiaddr.s_addr = inet_addr("234.3.3.1");
+mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+
+setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
+```
+
+## UNIX域套接字（unix domain）
+
+- socket同样可以用于本地通信
+- 创建套接字时使用本地协议PF_UNIX(或PF_LOCAL)
+  - socket(AF_LOCAL, SOCK_STREAM, 0)
+  - socket(AF_LOCAL, SOCK_DGRAM, 0)
+- 分为流式套接字和用户数据报套接字
+- 和其他进程间通信方式相比使用方便、高效
+- 常用于前后台进程通信
+
+> 进程间通信：
+>
+> 1. 进程间的数据共享
+>
+> ​	管道、消息队列、共享内存、unix域套接字
+>
+> 易用性：消息队列 > unix域套接字 > 管道 >  共享内存（经常要和信号量一起使用）
+>
+> 效率： 共享内存 > unix域套接字 > 管道 > 消息队列
+>
+> 常用： 共享内存、unix域套接字
+>
+> 2. 异步通信：
+>
+> ​	信号
+>
+> 3. 同步和互斥（资源保护）
+>
+> ​	信号量
+
+```c
+       // A UNIX domain socket address is represented in the following structure:
+
+           struct sockaddr_un {
+               sa_family_t sun_family;               /* AF_UNIX */
+               char        sun_path[108];            /* Pathname */
+           };
+
+       // The sun_family field always contains AF_UNIX.  On  Linux,  sun_path  is
+       // 108 bytes in size; see also BUGS, below.
+
+```
+
+Unix域套接字的文件路径名（在内存中的文件）：
+
+1. 必须事先不存在
+2. 一般给绝对路径
+3. 由内核在内存中创建
+
