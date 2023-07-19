@@ -35,7 +35,7 @@ int main(void) {
     if (!access(UNIX_DOMAIN_FILE, F_OK)) {
         unlink(UNIX_DOMAIN_FILE);
     }
-    strncpy(sun.sun_path, UNIX_DOMAIN_FILE, sizeof(UNIX_DOMAIN_FILE));
+    strncpy(sun.sun_path, UNIX_DOMAIN_FILE, sizeof(sun.sun_path) - 1);
 
 
 #endif

@@ -1,6 +1,6 @@
 #include "net.h"
 #include <sys/select.h>
-
+#include <sys/un.h>
 
 void usage(char *s) {
     printf("%s <unix_domain_file>\n", s);
@@ -8,42 +8,35 @@ void usage(char *s) {
 
 int main(int argc, char **argv) {
     int fd = -1;
-    struct sockaddr_in sin;
+    struct sockaddr_un sun;
     int port;
 
-    if (argc != 2) {
-        usage(argv[0]);
-        exit(1);
-    }
+    // if (argc != 2) {
+    //     usage(argv[0]);
+    //     exit(1);
+    // }
 
 
     /* Create a socket descriptor */
-    if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
         perror("socket");
         exit(1);
     }
 
-    port = atoi(argv[2]);
-
-    if (port < 5000) {
-        usage(argv[0]);
-        exit(1);
-    }
 
     /* Connect to the server */
-    bzero(&sin, sizeof(sin));
-    sin.sin_family = AF_INET;
-    sin.sin_port = htons(port);
-#if 0
-    sin.sin_addr = inet_addr(SERV_IP_ADDR);
-#else
-    if (inet_pton(AF_INET, argv[1], (void *) &sin.sin_addr.s_addr) != 1) {
-        perror("inet_pton");
+    bzero(&sun, sizeof(sun));
+    sun.sun_family = AF_UNIX;
+
+    /* to make sure UNIX_DOMAIN_FILE exists and is writable, otherwise exit */
+    if (access(UNIX_DOMAIN_FILE, F_OK | W_OK) < 0) {
         exit(1);
     }
-#endif
 
-    if (connect(fd, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
+    strncpy(sun.sun_path, UNIX_DOMAIN_FILE, sizeof(sun.sun_path) - 1);
+
+
+    if (connect(fd, (struct sockaddr *) &sun, sizeof(sun)) < 0) {
         perror("connect");
         exit(1);
     }

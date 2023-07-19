@@ -627,3 +627,52 @@ Unix域套接字的文件路径名（在内存中的文件）：
 2. 一般给绝对路径
 3. 由内核在内存中创建
 
+## 数据库
+
+### SQLite3基本命令
+
+**没有严格的类型检查**
+
+**无法直接删除一列**
+
+1. 系统命令（以.开头）
+   1. .schema 查看表的结构图
+   2. .databases 查看数据库
+   3. .table 查看当前数据库下的表格
+2. sql命令
+   1. 创建数据表： CREATE TABLE stu(id integer, name str, score interger);
+   2. 插入记录： INSERT INTO stu VALUES(1001, 'zhangsan', 80);
+   3. 插入部分记录： INSERT INTO stu(id, name) VALUES(1001, 'zhangsan');
+   4. 查看记录： SELECT * FROM stu; SELECT id, name FROM stu;
+   5. 查看符合要求的记录： SELECT * FROM stu WHERE score=80 AND id=1001; SELECT * FROM stu WHERE score=80 OR id=1001;
+   6. 删除一条记录： DELETE FROM stu WHERE name='zhangsan';
+   7. 更新一条记录： UPDATE stu SET name = 'wang', score = 80 WHERE id=1001;
+   8. 增加一列： ALTER TABLE stu ADD COLUMN address string;
+   9. 删除一列的替代方案：
+      1. CREATE TABLE stu1 AS SELECT id, name, score FROM stu;
+      2. DROP TABLE stu;
+      3. ALTER TABLE stu1 RENAME TO stu;
+
+### SQLite编程接口
+
+```c
+#include <sqlite3.h>
+
+int sqlite3_open(
+  const char *filename,   /* Database filename (UTF-8) */
+  sqlite3 **ppDb          /* OUT: SQLite db handle */
+);
+
+
+int sqlite3_close( sqlite3* db );
+const char* sqlite3_errmsg(   sqlite3* db );
+
+int sqlite3_exec(
+  sqlite3*,                                  /* An open database */
+  const char *sql,                           /* SQL to be evaluated */
+  int (*callback)(void*,int,char**,char**),  /* Callback function */
+  void *,                                    /* 1st argument to callback */
+  char **errmsg                              /* Error msg written here */
+);
+```
+
