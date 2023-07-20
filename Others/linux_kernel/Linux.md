@@ -676,3 +676,8 @@ int sqlite3_exec(
 );
 ```
 
+## 类有道词典demo
+
+![image-20230720054414413](assets/image-20230720054414413.png)
+
+![image-20230720054128467](assets/image-20230720054128467.png)

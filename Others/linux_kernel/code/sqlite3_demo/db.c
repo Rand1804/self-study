@@ -9,6 +9,7 @@
 int main(int argc, const char *argv[]) {
     sqlite3 *db;
     char *errmsg;
+    int cmd;
 
     if (sqlite3_open(DATABASE, &db) != SQLITE_OK) {
         printf("sqlite3_open: %s\n", sqlite3_errmsg(&db));
@@ -24,5 +25,7 @@ int main(int argc, const char *argv[]) {
             printf("sqlite3_exec: %s\n", errmsg);
             exit(1);
     }
+
+    printf("sqlite3_exec success.\n");
 
 }
