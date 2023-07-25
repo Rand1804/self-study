@@ -19,7 +19,7 @@
 #define Q 3     //  user - query
 #define H 4     //  user - history
 
-#define DATABASE "my.db"
+#define DATABASE "/home/wuwt/code/self-study/Others/linux_kernel/code/dict_demo/my.db"
 
 // communication information structure
 typedef struct {
@@ -58,6 +58,9 @@ int main(int argc, const char *argv[]) {
         perror("socket");
         exit(1);
     }
+
+    int b_reuse = 1;
+    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &b_reuse, sizeof(b_reuse));
 
     bzero(&sin, sizeof(sin));
     sin.sin_family = AF_INET;
@@ -178,7 +181,7 @@ int do_searchword(MSG *msg) {
     int result = 0;
     char *p;
 
-    if ((fp = fopen("dict.txt", "r")) == NULL) {
+    if ((fp = fopen("/home/wuwt/code/self-study/Others/linux_kernel/code/dict_demo/dict.txt", "r")) == NULL) {
         perror("Fail to fopen.\n");
         strcpy(msg->data, "Fail to open dict.txt");
         return -1;
@@ -187,6 +190,10 @@ int do_searchword(MSG *msg) {
     printf("%s, len = %d\n", msg->data, len);
 
     while (fgets(buf, 512, fp) != NULL) {
+        if (strcmp(buf, "\n") == 0) {
+            continue;
+        }
+
         result = strncmp(buf, msg->data, len);
 
         if (result < 0) {
@@ -194,10 +201,12 @@ int do_searchword(MSG *msg) {
         }
         if (result > 0) {
             strcpy(msg->data, "NOT FOUND!");
+            printf("%s\n", buf);
             break;
         }
         if (result == 0 && buf[len]!=' ') {
             strcpy(msg->data, "NOT FOUND!");
+            printf("%s\n", buf);
             break;
         }
 
@@ -206,6 +215,7 @@ int do_searchword(MSG *msg) {
             p++;
         }
         strcpy(msg->data, p);
+        break;
         
     }
     fclose(fp);
@@ -235,12 +245,13 @@ void do_query(int acceptfd, MSG *msg, sqlite3 *db) {
     char word[128];
     char sql[128];
     char date[256];
-    char errmsg[128];
+    char *errmsg;
+    int result;
 
     strcpy(word, msg->data);
-
+    result = do_searchword(msg);
     send(acceptfd, msg, sizeof(MSG), 0);
-    if (do_searchword(msg) == 0) {
+    if (result == 0) {
         get_date(date);
         sprintf(sql, "insert into record values('%s', '%s', '%s');", msg->name, date, word);
         if (sqlite3_exec(db, sql, NULL, NULL, &errmsg) != SQLITE_OK) {

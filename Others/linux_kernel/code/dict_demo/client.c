@@ -6,6 +6,7 @@
 #include <strings.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <string.h>
 
 #define N 32
 
@@ -175,13 +176,14 @@ void do_query(int sockfd, MSG *msg) {
         }
         if (send(sockfd, msg, sizeof(MSG), 0) < 0) {
             perror("send");
-            return -1;
+            return;
         }
 
         if (recv(sockfd, msg, sizeof(MSG), 0) < 0) {
             perror("recv");
-            return -1;
+            return;
         }
+        printf("%s\n", msg->data);
     }
 
 }
