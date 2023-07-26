@@ -263,9 +263,32 @@ void do_query(int acceptfd, MSG *msg, sqlite3 *db) {
     return;
 }
 
+int history_callback(void *arg, int f_num, char **f_value, char **f_name) {
+    int acceptfd = (int)arg;
+    MSG msg;
 
+    sprintf(msg.data, "%s %s", f_value[1], f_value[2]);
+    if (send(acceptfd, &msg, sizeof(MSG), 0) < 0) {
+        perror("send");
+        return -1;
+    }
+
+    return 0;
+}
 
 
 void do_history(int acceptfd, MSG *msg, sqlite3 *db) {
+    char sql[128];
+    char *errmsg;
 
+    sprintf(sql, "select * from record where name = '%s';", msg->name);
+
+    if (sqlite3_exec(db, sql, history_callback, (void *)acceptfd, &errmsg) != SQLITE_OK) {
+        printf("%s\n", errmsg);
+        return;
+    }
+
+    msg->data[0] = '\0';
+    send(acceptfd, msg, sizeof(MSG), 0);
+    return;
 }

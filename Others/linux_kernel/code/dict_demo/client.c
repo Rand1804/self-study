@@ -69,7 +69,7 @@ int main(int argc, const char *argv[]) {
         case 2:
             if (do_login(sockfd, &msg) == 1) {
                 goto next;
-            };
+            }
             break;
         case 3:
             close(sockfd);
@@ -190,6 +190,18 @@ void do_query(int sockfd, MSG *msg) {
 
 void do_history(int sockfd, MSG *msg) {
     printf("history ...\n");
+    msg->type = H;
 
+    if (send(sockfd, msg, sizeof(MSG), 0) < 0) {
+        perror("send");
+        return;
+    }
+
+    while(recv(sockfd, msg, sizeof(MSG), 0) > 0) {
+        if (msg->data[0] == '\0') {
+            break;
+        }
+        printf("%s\n", msg->data);
+    }
 
 }
