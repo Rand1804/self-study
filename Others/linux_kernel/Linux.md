@@ -684,3 +684,7 @@ int sqlite3_exec(
 
 ## ARM
 
+![image-20230726220226171](assets/image-20230726220226171.png)
+
+![image-20230726221508289](assets/image-20230726221508289.png)
+
