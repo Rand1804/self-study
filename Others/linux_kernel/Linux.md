@@ -688,3 +688,38 @@ int sqlite3_exec(
 
 ![image-20230726221508289](assets/image-20230726221508289.png)
 
+### 汇编指令
+
+#### mov
+
+```assembly
+.text
+mov r13, #5   @ 将十进制5移动到r13中
+mov r0, r1
+mov r0, r1, LSL#2 @ 将r1中的数字逻辑左移2次
+mov r0, r1, LSR#2 @ 将r1中的数字逻辑左移2次
+mrs r0, cpsr	@ 将cpsr中的数据移动到r0中
+msr cpsr, r0	@ 将r0中的数据移动到cpsr中
+.end
+```
+
+#### 条件执行
+
+```assembly
+@if (a==0) x=0;
+@if (a>0) x=x+3;
+
+.text
+cmp	r0, #0
+moveq	r1, #0
+addgt	r1, r1, #3
+.end
+```
+
+#### 指令机器码
+
+- ARM采用的是32位架构
+  - ARM指令集(32-bit)
+  - Thumb指令集(16-bit)
+- ARM instruction set encoding
+  - 指令的机器码(如指令moveq r0, r1	机器码 0x01A00001)
