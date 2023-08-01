@@ -18,4 +18,4 @@ Recommended Book: "Computer Systems A Programmer’s Perspective-Pearson (2015) 
 
 ## Mathematical Foundations of Computer Science:
 
-Recommended Course:
+Recommended Course: 
