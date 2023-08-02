@@ -723,3 +723,81 @@ addgt	r1, r1, #3
   - Thumb指令集(16-bit)
 - ARM instruction set encoding
   - 指令的机器码(如指令moveq r0, r1	机器码 0x01A00001)
+
+- 立即数合法性  用伪指令 ldr   r0, =0x445501替换
+- ARM指令包含条件判断
+
+#### 逻辑指令
+
+```assembly
+and r0, r1, #0xFF @ r0 = r1&0xFF
+orr r3, r0, #0x0F @ r3 = r0|0x0F
+bic r0, r0, #0x03 @ 清除r0中的0号位和1号位
+tst r0, #0x20 @ 测试第6位是否为0,为0则Z标志置1
+cmp r1, r0   @ 将R1与R0相减做比较，并根据结果设置CPSR的标志位
+```
+
+#### 中断管理
+
+打开中断
+
+`MSR` (Move to Status Register) and `MRS` (Move from Status Register) 
+
+CPSR stands for "Current Program Status Register" 
+
+```assembly
+mrs r0, cpsr
+bic r0, #0xc0
+msr cpsr, r0
+```
+
+判断当前工作状态是否是ARM状态，是则切换到user工作模式
+
+```assembly
+mrs r0, cpsr
+tst r0, #0x20
+andeq r0, r0, #0xFFFFFFE0
+orreq r0, r0, #0x10
+msreq cpsr, r0
+```
+
+#### 跳转指令
+
+```assembly
+b main
+bl func @ 调用函数 Link Register (LR, or R14)
+beq addr
+bne addr @ 当CPSR寄存器中的Z条件码为0时，跳转到该地址处
+```
+
+#### 最大公约数
+
+```rust
+fn gcd(mut n: u64, mut m: u64) -> u64 {
+    assert!(n != 0 && m != 0);
+    while m != 0 {
+        if m < n {
+            let t = m;
+            m = n;
+            n = t;
+        }
+        m = m % n;
+    }
+    n
+}
+```
+
+```c
+int gcd(int a, int b) {
+    while(1) {
+        if (a==b) break;
+        if (a>b){
+            a = a-b;
+        } else {
+            b = b-a;
+        }
+    }oooooo
+    return a;
+}
+```
+
