@@ -802,3 +802,83 @@ int gcd(int a, int b) {
 ```
 
 **如果a和b存在公因数，那a-b也一定存在这个因数**
+
+#### load/store
+
+**注：load/store架构规定，存储器之间不能直接拷贝，需通过寄存器做中转**
+
+```assembly
+@ 后索引，将r0的数据写入r1地址中，并+4更新r1
+str r0, [r1], #4
+@ 前索引，将r0的数据写入r1+4地址中，不更新r1
+str r0, [r1, #4]
+@ 前索引，将r0的数据写入r1+4地址中，并更新r1
+str r0, [r1, #4]!
+```
+
+实例：
+
+```assembly
+	.text
+main:
+	mov	r5, #0
+	ldr	r7, =buf
+	ldr	r8, =dest_buf
+loop:
+	cmp	r5, #3
+	beq	main_end
+	add	r5, #1
+	ldrb	r0, [r7], #1
+	strb	r0, [r8], #1
+	b	loop
+	
+buf:
+	.byte 1,2,3
+	.data
+main_end:
+	b main_end
+
+	.data
+dest_buf:
+	.space	8
+	
+	.end
+```
+
+#### GNU汇编伪指令
+
+```assembly
+.text	将定义符开始的代码编译到代码段
+.data	将定义符开始的代码编译到数据段
+.end	文件结束
+.equ	GPG3CON, OXE03001C0 定义宏（用GPG3CON代替OXE03001C0）
+.byte	定义变量1字节
+		.byte	0x11, 'a', 0定义字节数组
+.word	定义word变量（4字节， 32位机）
+		.word	0x12344578, 0x33445566
+.string	定义字符串
+		.string "abc\0"
+ldr r0, =0xE0028008	载入大常数0xE0028008到r0中
+.global _start	声明_start为全局符号
+```
+
+#### 批量操作指令
+
+由内部机器码实现，速度比循环载入更快
+
+```assembly
+@ ia-Increment After ib-Increment Before da-Dec After db-Dec Before
+ldmia r0!, {r3 - r10} @ r0里地址指向的内容,批量load到r3~r10寄存器中，r0里地址会自动加4
+stmia r0!, {r3 - r10} @ 把r3~r10寄存器中内容，store到r0里地址执行空间中，r0里地址会自动加4
+```
+
+#### 堆栈操作指令
+
+```assembly
+stmfd sp!, {r0-r12, lr} @ 将寄存器r0~r12， lr中的值存入栈中
+						@ 常用于中断保存上下文，！表示会自动偏移
+ldmfd sp!, {r0-r12, pc}^ @ 将栈中值逐个弹出到寄存器r0~r12 pc 中
+						 @ 常由于恢复中断上下文， ^表示会恢复spsr到cpsr
+						 
+```
+
