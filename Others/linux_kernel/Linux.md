@@ -796,7 +796,7 @@ int gcd(int a, int b) {
         } else {
             b = b-a;
         }
-    }oooooo
+    }
     return a;
 }
 ```
@@ -879,6 +879,47 @@ stmfd sp!, {r0-r12, lr} @ 将寄存器r0~r12， lr中的值存入栈中
 						@ 常用于中断保存上下文，！表示会自动偏移
 ldmfd sp!, {r0-r12, pc}^ @ 将栈中值逐个弹出到寄存器r0~r12 pc 中
 						 @ 常由于恢复中断上下文， ^表示会恢复spsr到cpsr
-						 
+						 @ The ! after SP indicates that the Stack Pointer should be updated (written back) after the operation.
+swi 0x02	@ 产生软中断，软中断号为2	 
+```
+
+### 异常处理
+
+- ARM有两级外部中断FIQ, IRQ
+- 可是大多数的基于ARM的系统有>2个中断源，因此需要一个**中断控制器**
+- Note：通常中断处理程序总是应该包含**清除中断源**的代码
+
+![image-20230814052541674](assets/image-20230814052541674.png)
+
+```assembly
+	.text
+	@ 异常向量表
+	b reset	@ 0x00 Reset
+	nop		@ 0x04 undef
+	b swi_handler		@ 0x08 swi
+    nop		@ 0x0C prefetch abort
+    nop 	@ 0x10 data abort
+    nop		@ 0x14 reserved
+    nop		@ 0x18 IRQ
+    nop		@ 0x1C FIQ
+
+swi_handler:
+	stmfd sp!, {r0, lr}
+	mov r0, #6
+	ldmfd sp!, {r0, pc}
+
+reset:
+	ldr sp, =stack_base
+	mov r0, #3
+	swi 2	@ 跳转到异常向量表中软中断的入口位置，并保持下条指令地址到lr
+	b reset
+	
+	.data
+buf:
+	.space 32
+stack_base:
+	
+
+	.end
 ```
 
