@@ -688,6 +688,8 @@ int sqlite3_exec(
 
 ![image-20230726221508289](assets/image-20230726221508289.png)
 
+![image-20230815011829255](assets/image-20230815011829255.png)
+
 ### 汇编指令
 
 #### mov
@@ -891,27 +893,58 @@ swi 0x02	@ 产生软中断，软中断号为2
 
 ![image-20230814052541674](assets/image-20230814052541674.png)
 
+![image-20230815013101785](assets/image-20230815013101785.png)
+
 ```assembly
 	.text
 	@ 异常向量表
-	b reset	@ 0x00 Reset
-	nop		@ 0x04 undef
-	b swi_handler		@ 0x08 swi
-    nop		@ 0x0C prefetch abort
-    nop 	@ 0x10 data abort
-    nop		@ 0x14 reserved
-    nop		@ 0x18 IRQ
-    nop		@ 0x1C FIQ
+	b reset					@ 0x00 Reset
+	ldr pc, _undef			@ 0x04 undef
+	ldr pc, _swi_handler	@ 0x08 swi 突破32M地址空间限制
+    ldr pc, _prefetch		@ 0x0C prefetch abort
+    ldr pc, _data_abort 	@ 0x10 data abort
+    nop						@ 0x14 reserved
+    ldr pc, _irq			@ 0x18 IRQ
+    ldr pc, _fiq			@ 0x1C FIQ
+
+_undef:
+	.word undef_handler
+_swi_hanlder:
+	.word swi_handler
+_prefetch:
+	.word prefetch_handler
+_data_abort:
+	.word data_abort_handler
+_irq:
+	.word irq_handler
+_fiq:
+	.word fiq_handler
+
+
 
 swi_handler:
 	stmfd sp!, {r0, lr}
-	mov r0, #6
-	ldmfd sp!, {r0, pc}
+	sub r0, lr, #4
+	ldr r0, [r0]
+	bic r0, #0xff000000
+	bl swi_num_handler
+	ldmfd sp!, {r0, pc}^
+
+swi_num_handler:
+	@switch(num)
+	cmp r0, #2
+	moveq r7, #2
+	cmp r0, #4
+	moveq r7, #4
+	mov pc, lr
+	
 
 reset:
 	ldr sp, =stack_base
+	@ 切换到应用程序
+	msr cpsr, #0x10
 	mov r0, #3
-	swi 2	@ 跳转到异常向量表中软中断的入口位置，并保持下条指令地址到lr
+	swi 2	@ 跳转到异常向量表中软中断的入口位置，并保持下条指令地址到lr,切换到svc工作模式
 	b reset
 	
 	.data
@@ -921,5 +954,19 @@ stack_base:
 	
 
 	.end
+```
+
+## ARM裸机驱动开发
+
+![image-20230815014241715](assets/image-20230815014241715.png)
+
+```assembly
+	.text
+	@ 设置LED灯的配置寄存器GPX2CON[7]为输出状态
+	ldr r0, =0x11000c40
+	ldr r1, [r0]
+	bic r1, #0xf0000000
+	orr r1, #0x10000000
+	str r1, [r0]
 ```
 
