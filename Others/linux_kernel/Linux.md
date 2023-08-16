@@ -968,5 +968,35 @@ stack_base:
 	bic r1, #0xf0000000
 	orr r1, #0x10000000
 	str r1, [r0]
+	@ 设置LED灯输出高电平   GPX2DAT
+	ldr r0, =0x11000c44
+	ldr r1, [r0]
+	orr r1, #0x80
+	str r1, [r0]
+	.end
 ```
 
+嵌入式Linux交叉开发环境硬件基本组成
+
+### 通信接口
+
+- 串行通讯
+  - 单线
+  - 双线 uart （全双工 异步）
+  - 双线 i2c （半双工 同步）
+  - 三线 spi （全双工 同步）
+- 并行通讯
+  - 多根数据线 地址线，如内存
+
+![image-20230816070146604](assets/image-20230816070146604.png)
+
+![image-20230816070731701](assets/image-20230816070731701.png)
+
+**UART**(Universal Asynchronous Receiver-Transmitter)：简单性和最低的硬件要求，但通信速率不能过高。“异步”是指数据可以以不规则的间隔传输，而无需发送和接收设备之间的**同步时钟信号**。
+
+**I^2C**(Inter-Integrated Circuit):I²C communication primarily requires two wires:
+
+- `SDA` (Serial Data Line): This is the line where actual data is transmitted.
+- `SCL` (Serial Clock Line): This is the clock line, controlled by the master, that synchronizes data transfer on the I²C bus.
+
+**SPI**(Serial Peripheral Interface)
