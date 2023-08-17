@@ -1,0 +1,173 @@
+
+uart.elf:     file format elf32-littlearm
+
+
+Disassembly of section .text:
+
+40008000 <_start>:
+40008000:	ea00000d 	b	4000803c <reset>
+40008004:	e59ff014 	ldr	pc, [pc, #20]	@ 40008020 <_undefined_instruction>
+40008008:	e59ff014 	ldr	pc, [pc, #20]	@ 40008024 <_software_interrupt>
+4000800c:	e59ff014 	ldr	pc, [pc, #20]	@ 40008028 <_prefetch_abort>
+40008010:	e59ff014 	ldr	pc, [pc, #20]	@ 4000802c <_data_abort>
+40008014:	e59ff014 	ldr	pc, [pc, #20]	@ 40008030 <_not_used>
+40008018:	e59ff014 	ldr	pc, [pc, #20]	@ 40008034 <_irq>
+4000801c:	e59ff014 	ldr	pc, [pc, #20]	@ 40008038 <_fiq>
+
+40008020 <_undefined_instruction>:
+40008020:	40008020 	andmi	r8, r0, r0, lsr #32
+
+40008024 <_software_interrupt>:
+40008024:	40008024 	andmi	r8, r0, r4, lsr #32
+
+40008028 <_prefetch_abort>:
+40008028:	40008028 	andmi	r8, r0, r8, lsr #32
+
+4000802c <_data_abort>:
+4000802c:	4000802c 	andmi	r8, r0, ip, lsr #32
+
+40008030 <_not_used>:
+40008030:	40008030 	andmi	r8, r0, r0, lsr r0
+
+40008034 <_irq>:
+40008034:	40008034 	andmi	r8, r0, r4, lsr r0
+
+40008038 <_fiq>:
+40008038:	40008038 	andmi	r8, r0, r8, lsr r0
+
+4000803c <reset>:
+4000803c:	e59f0060 	ldr	r0, [pc, #96]	@ 400080a4 <stacktop+0x4>
+40008040:	ee0c0f10 	mcr	15, 0, r0, cr12, cr0, {0}
+
+40008044 <init_stack>:
+40008044:	e59f0054 	ldr	r0, [pc, #84]	@ 400080a0 <stacktop>
+40008048:	e1a0d000 	mov	sp, r0
+4000804c:	e2400c02 	sub	r0, r0, #512	@ 0x200
+40008050:	e329f0d2 	msr	CPSR_fc, #210	@ 0xd2
+40008054:	e1a0d000 	mov	sp, r0
+40008058:	e2400c02 	sub	r0, r0, #512	@ 0x200
+4000805c:	e329f0d1 	msr	CPSR_fc, #209	@ 0xd1
+40008060:	e1a0d000 	mov	sp, r0
+40008064:	e2400000 	sub	r0, r0, #0
+40008068:	e329f0d7 	msr	CPSR_fc, #215	@ 0xd7
+4000806c:	e1a0d000 	mov	sp, r0
+40008070:	e2400000 	sub	r0, r0, #0
+40008074:	e329f0db 	msr	CPSR_fc, #219	@ 0xdb
+40008078:	e1a0d000 	mov	sp, r0
+4000807c:	e2400000 	sub	r0, r0, #0
+40008080:	e329f0df 	msr	CPSR_fc, #223	@ 0xdf
+40008084:	e1a0d000 	mov	sp, r0
+40008088:	ea00003b 	b	4000817c <main>
+
+4000808c <delay1s>:
+4000808c:	e3e0420e 	mvn	r4, #-536870912	@ 0xe0000000
+
+40008090 <delay1s_loop>:
+40008090:	e2444001 	sub	r4, r4, #1
+40008094:	e3540000 	cmp	r4, #0
+40008098:	1afffffc 	bne	40008090 <delay1s_loop>
+4000809c:	e12fff1e 	bx	lr
+
+400080a0 <stacktop>:
+400080a0:	40008994 	mulmi	r0, r4, r9
+400080a4:	40008000 	andmi	r8, r0, r0
+
+400080a8 <uart_init>:
+400080a8:	e52db004 	push	{fp}		@ (str fp, [sp, #-4]!)
+400080ac:	e28db000 	add	fp, sp, #0
+400080b0:	e59f3060 	ldr	r3, [pc, #96]	@ 40008118 <uart_init+0x70>
+400080b4:	e5933000 	ldr	r3, [r3]
+400080b8:	e59f2058 	ldr	r2, [pc, #88]	@ 40008118 <uart_init+0x70>
+400080bc:	e3c330ff 	bic	r3, r3, #255	@ 0xff
+400080c0:	e5823000 	str	r3, [r2]
+400080c4:	e59f304c 	ldr	r3, [pc, #76]	@ 40008118 <uart_init+0x70>
+400080c8:	e5933000 	ldr	r3, [r3]
+400080cc:	e59f2044 	ldr	r2, [pc, #68]	@ 40008118 <uart_init+0x70>
+400080d0:	e3833022 	orr	r3, r3, #34	@ 0x22
+400080d4:	e5823000 	str	r3, [r2]
+400080d8:	e59f303c 	ldr	r3, [pc, #60]	@ 4000811c <uart_init+0x74>
+400080dc:	e3a02003 	mov	r2, #3
+400080e0:	e5832000 	str	r2, [r3]
+400080e4:	e59f3034 	ldr	r3, [pc, #52]	@ 40008120 <uart_init+0x78>
+400080e8:	e3a02005 	mov	r2, #5
+400080ec:	e5832000 	str	r2, [r3]
+400080f0:	e59f302c 	ldr	r3, [pc, #44]	@ 40008124 <uart_init+0x7c>
+400080f4:	e3a02035 	mov	r2, #53	@ 0x35
+400080f8:	e5832000 	str	r2, [r3]
+400080fc:	e59f3024 	ldr	r3, [pc, #36]	@ 40008128 <uart_init+0x80>
+40008100:	e3a02004 	mov	r2, #4
+40008104:	e5832000 	str	r2, [r3]
+40008108:	e1a00000 	nop			@ (mov r0, r0)
+4000810c:	e28bd000 	add	sp, fp, #0
+40008110:	e49db004 	pop	{fp}		@ (ldr fp, [sp], #4)
+40008114:	e12fff1e 	bx	lr
+40008118:	11400020 	cmpne	r0, r0, lsr #32
+4000811c:	13820000 	orrne	r0, r2, #0
+40008120:	13820004 	orrne	r0, r2, #4
+40008124:	13820028 	orrne	r0, r2, #40	@ 0x28
+40008128:	1382002c 	orrne	r0, r2, #44	@ 0x2c
+
+4000812c <uart_putc>:
+4000812c:	e52db004 	push	{fp}		@ (str fp, [sp, #-4]!)
+40008130:	e28db000 	add	fp, sp, #0
+40008134:	e24dd00c 	sub	sp, sp, #12
+40008138:	e1a03000 	mov	r3, r0
+4000813c:	e54b3005 	strb	r3, [fp, #-5]
+40008140:	e1a00000 	nop			@ (mov r0, r0)
+40008144:	e59f3028 	ldr	r3, [pc, #40]	@ 40008174 <uart_putc+0x48>
+40008148:	e5933000 	ldr	r3, [r3]
+4000814c:	e2033002 	and	r3, r3, #2
+40008150:	e3530000 	cmp	r3, #0
+40008154:	0afffffa 	beq	40008144 <uart_putc+0x18>
+40008158:	e59f2018 	ldr	r2, [pc, #24]	@ 40008178 <uart_putc+0x4c>
+4000815c:	e55b3005 	ldrb	r3, [fp, #-5]
+40008160:	e5823000 	str	r3, [r2]
+40008164:	e1a00000 	nop			@ (mov r0, r0)
+40008168:	e28bd000 	add	sp, fp, #0
+4000816c:	e49db004 	pop	{fp}		@ (ldr fp, [sp], #4)
+40008170:	e12fff1e 	bx	lr
+40008174:	13820010 	orrne	r0, r2, #16
+40008178:	13820020 	orrne	r0, r2, #32
+
+4000817c <main>:
+4000817c:	e92d4800 	push	{fp, lr}
+40008180:	e28db004 	add	fp, sp, #4
+40008184:	ebffffc7 	bl	400080a8 <uart_init>
+40008188:	e3a00041 	mov	r0, #65	@ 0x41
+4000818c:	ebffffe6 	bl	4000812c <uart_putc>
+40008190:	eafffffc 	b	40008188 <main+0xc>
+
+Disassembly of section .data:
+
+40008194 <stack>:
+	...
+
+Disassembly of section .ARM.attributes:
+
+00000000 <.ARM.attributes>:
+   0:	00002541 	andeq	r2, r0, r1, asr #10
+   4:	61656100 	cmnvs	r5, r0, lsl #2
+   8:	01006962 	tsteq	r0, r2, ror #18
+   c:	0000001b 	andeq	r0, r0, fp, lsl r0
+  10:	00543405 	subseq	r3, r4, r5, lsl #8
+  14:	01080206 	tsteq	r8, r6, lsl #4
+  18:	04120109 	ldreq	r0, [r2], #-265	@ 0xfffffef7
+  1c:	01150114 	tsteq	r5, r4, lsl r1
+  20:	01180317 	tsteq	r8, r7, lsl r3
+  24:	Address 0x24 is out of bounds.
+
+
+Disassembly of section .comment:
+
+00000000 <.comment>:
+   0:	3a434347 	bcc	10d0d24 <_start-0x3ef372dc>
+   4:	35312820 	ldrcc	r2, [r1, #-2080]!	@ 0xfffff7e0
+   8:	2e32313a 	mrccs	1, 1, r3, cr2, cr10, {1}
+   c:	65722e32 	ldrbvs	r2, [r2, #-3634]!	@ 0xfffff1ce
+  10:	312d316c 			@ <UNDEFINED> instruction: 0x312d316c
+  14:	32312029 	eorscc	r2, r1, #41	@ 0x29
+  18:	312e322e 			@ <UNDEFINED> instruction: 0x312e322e
+  1c:	32303220 	eorscc	r3, r0, #32, 4
+  20:	30323132 	eorscc	r3, r2, r2, lsr r1
+  24:	Address 0x24 is out of bounds.
+
