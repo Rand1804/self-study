@@ -16,12 +16,20 @@ _software_interrupt:    .word _software_interrupt
 _prefetch_abort:        .word _prefetch_abort
 _data_abort:            .word _data_abort
 _not_used:              .word _not_used
-_irq:                   .word _irq
+_irq:                   .word irq_hander
 _fiq:                   .word _fiq
 
 reset:
     ldr r0, =0x40008000     
     mcr p15, 0, r0, c12, c0, 0      @ set external interrupt vector base address
+
+irq_handler:
+    sub lr, lr, #4
+    stmfd sp!, {r0-r12, lr}
+    bl do_irq
+irq_handler_end:
+    ldmfd sp!, {r0-r12, pc}^
+
 
 init_stack:
     ldr r0, stacktop

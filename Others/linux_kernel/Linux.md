@@ -885,6 +885,10 @@ ldmfd sp!, {r0-r12, pc}^ @ 将栈中值逐个弹出到寄存器r0~r12 pc 中
 swi 0x02	@ 产生软中断，软中断号为2	 
 ```
 
+> When a subroutine or function is called using the `BL` (Branch with Link) instruction in ARM assembly, the address of the instruction immediately following the `BL` (i.e., the return address) is saved in the Link Register (LR).
+>
+> This is often achieved with a `MOV PC, LR` or a `BX LR` instruction at the end of the subroutine, effectively setting the Program Counter (PC) to the value stored in the LR and thus returning to the caller.(Branch and Exchange Instruction Set)
+
 ### 异常处理
 
 - ARM有两级外部中断FIQ, IRQ
@@ -924,7 +928,7 @@ _fiq:
 
 swi_handler:
 	stmfd sp!, {r0, lr}
-	sub r0, lr, #4
+	sub r0, lr, #4	@ 软中断号为其指令机器码的0-23bit
 	ldr r0, [r0]
 	bic r0, #0xff000000
 	bl swi_num_handler
@@ -940,7 +944,7 @@ swi_num_handler:
 	
 
 reset:
-	ldr sp, =stack_base
+	ldr sp, =stack_base	@ 不同模式有自己的LR和SP寄存器
 	@ 切换到应用程序
 	msr cpsr, #0x10
 	mov r0, #3
@@ -955,6 +959,8 @@ stack_base:
 
 	.end
 ```
+
+![image-20230818044748043](assets/image-20230818044748043.png)
 
 ## ARM裸机驱动开发
 
@@ -1107,3 +1113,30 @@ stack_base:
 >    - In systems with multiple clusters of CPUs, interrupts can be routed based on their affinity to ensure they are handled by the appropriate cluster.
 >
 > This provides a deeper look into the structure of the GIC. It's worth noting that while the GIC specification outlines these features, individual implementations may vary based on the specific requirements of the SoC or device. For the most accurate and detailed information about a particular GIC implementation, refer to the specific reference manual or documentation associated with that chip.
+
+![image-20230818034819339](assets/image-20230818034819339.png)
+
+![image-20230818035751712](assets/image-20230818035751712.png)
+
+```assembly
+irq_handler:
+    sub lr, lr, #4
+    stmfd sp!, {r0-r12, lr}
+    bl do_irq
+irq_handler_end:
+    ldmfd sp!, {r0-r12, pc}^
+```
+
+> Why `sub lr, lr, #4`?
+>
+> 1. **The program counter on ARM points to the instruction being fetched, rather than the current instruction**.
+>
+>    For normal subroutine calls, this is perfect -- when the program counter is copied to the link register, it already points at the next instruction. In an interrupt handler, it points at the instruction *after* the interrupted instruction, so this needs to be corrected for.
+>
+>    You can also apply this correction on the way out, e.g. by returning with `SUBS pc, lr, #4`. Note that if the interrupted code was running in Thumb mode, the `lr` is only two bytes ahead, so if you want to support user code in Thumb mode, you need to look at the `spsr_IRQ` to find out which offset to apply.
+>
+> The instruction that had been "next", before the interrupt. Basically, the interrupt copies `psr` -> `spsr_IRQ`, switches to IRQ mode and replaces the current instruction with a `blx 0x18`, which means that the original instruction is never executed. So yes, that is an implementation issue.
+
+![image-20230818101210612](assets/image-20230818101210612.png)
+
+![image-20230818101147764](assets/image-20230818101147764.png)
