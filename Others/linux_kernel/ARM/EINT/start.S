@@ -16,7 +16,7 @@ _software_interrupt:    .word _software_interrupt
 _prefetch_abort:        .word _prefetch_abort
 _data_abort:            .word _data_abort
 _not_used:              .word _not_used
-_irq:                   .word irq_hander
+_irq:                   .word irq_handler
 _fiq:                   .word _fiq
 
 reset:

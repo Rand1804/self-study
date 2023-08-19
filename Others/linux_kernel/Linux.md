@@ -1026,6 +1026,14 @@ stack_base:
 
 ![image-20230817085607145](assets/image-20230817085607145.png)
 
+- **ICDISER (Interrupt Controller Distributor Set-Enable Register)**
+- **ICDDCR (Interrupt Controller Distributor Control Register)**
+- **ICCICR (Interrupt Controller CPU Interface Control Register)**
+
+![image-20230819022523246](assets/image-20230819022523246.png)
+
+![image-20230819023447638](assets/image-20230819023447638.png)
+
 > The Generic Interrupt Controller (GIC) is a specification introduced by ARM to provide a standardized interface for handling and managing interrupts in a multiprocessor environment, especially in the ARM Cortex-A series of processors. The GIC provides a unified solution to interrupt management, taking over the role traditionally played by multiple interrupt controllers in earlier designs.
 >
 > Let's break down the key components and functionalities of the GIC:
@@ -1140,3 +1148,63 @@ irq_handler_end:
 ![image-20230818101210612](assets/image-20230818101210612.png)
 
 ![image-20230818101147764](assets/image-20230818101147764.png)
+
+#### Distributor
+
+Distributor receives interrupts and provides the highest priority interrupt to the corresponding CPU interface. An interrupt with a lower priority is forwarded to the appropriate CPU Interfaces when it **becomes the highest priority** pending interrupt.
+
+The Distributor provides a **programming interface** for:
+
+- Enabling the **forwarding of interrupts to the CPU interfaces** globally.
+
+- **Enabling** or disabling each **interrupt**.
+
+- Setting the **priority level of each interrupt**.
+
+- Setting the **target processor list** of each interrupt.
+
+- Setting each peripheral interrupt to be **level-sensitive or edge-triggered**.
+
+- Setting each interrupt as either secure or Non-secure if the GIC implements the Security Extensions.
+
+- Sending an SGI to one or more target processors.
+
+  The Distributor also provides:
+
+- Visibility of the state of each interrupt.
+
+- A mechanism for software to set or clear the pending state of a peripheral interrupt.
+
+#### CPU Interface
+
+A CPU interface contains a programmable interrupt priority mask.
+CPU interface accepts pending interrupts only if the priority of the interrupt is higher than the:
+
+- Programmed interrupt priority mask.
+- Interrupts that the processor is currently servicing.
+
+Each **CPU interface block provides**:
+
+- Interface for a processor that operates with the GIC.
+- Programming interface for:
+  - Enabling the signaling of **interrupt requests** by the CPU interface.
+  - Acknowledging an interrupt.
+  - Indicating completion of the processing of an interrupt.
+  - Setting an interrupt **priority mask** for the processor.
+  - Defining the preemption policy for the processor.
+  - Determining the highest priority pending interrupt for the processor.
+
+To determine whether to signal the interrupt request to the processor, the CPU interface considers the interrupt priority mask and the preemption settings for the processor. At any time, the connected processor can read the priority of its highest priority active interrupt from a CPU interface register.
+
+![image-20230819114153762](assets/image-20230819114153762.png)
+
+![image-20230819114558552](assets/image-20230819114558552.png)
+
+![image-20230819115134016](assets/image-20230819115134016.png)
+
+#### write-1-to-clear
+
+Why using a write-1-to-clear approach?
+
+- **Atomic Operations**: By using a write-1-to-clear approach, you can clear a specific bit without having to read the value first. This can reduce race conditions where the value might change between reading the register and writing it back.
+- can just use `EXT_INT41_PEND = 0x1 << 1;`,because 0 has no effect. Don't need to read, then write back, just write directly.
