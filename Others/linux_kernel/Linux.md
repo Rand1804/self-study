@@ -1208,3 +1208,40 @@ Why using a write-1-to-clear approach?
 
 - **Atomic Operations**: By using a write-1-to-clear approach, you can clear a specific bit without having to read the value first. This can reduce race conditions where the value might change between reading the register and writing it back.
 - can just use `EXT_INT41_PEND = 0x1 << 1;`,because 0 has no effect. Don't need to read, then write back, just write directly.
+
+### 波形模拟
+
+#### uart
+
+![image-20230820050655411](assets/image-20230820050655411.png)
+
+#### i2c
+
+![image-20230820051134754](assets/image-20230820051134754.png)
+
+![image-20230820052442140](assets/image-20230820052442140.png)
+
+![image-20230820052908002](assets/image-20230820052908002.png)
+
+> 约定时钟上升沿读取数据，下降沿修改数据
+
+### PWM(Pulse Width Modulation)
+
+脉冲宽度调制
+
+交流蜂鸣器：占空比越大，音量越大。频率越高，音调越高
+
+![image-20230820054602005](assets/image-20230820054602005.png)
+
+![image-20230820095600103](assets/image-20230820095600103.png)
+
+![image-20230820095840315](assets/image-20230820095840315.png)
+
+![image-20230820101942856](assets/image-20230820101942856.png)
+
+
+
+### WDT(WatchDog Timer)
+
+![Screenshot from 2023-08-20 06-02-22](assets/Screenshot from 2023-08-20 06-02-22.png)
+
