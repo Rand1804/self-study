@@ -1204,7 +1204,7 @@ To determine whether to signal the interrupt request to the processor, the CPU i
 
 #### write-1-to-clear
 
-Why using a write-1-to-clear approach?
+**Why** using a write-1-to-clear approach?
 
 - **Atomic Operations**: By using a write-1-to-clear approach, you can clear a specific bit without having to read the value first. This can reduce race conditions where the value might change between reading the register and writing it back.
 - can just use `EXT_INT41_PEND = 0x1 << 1;`,because 0 has no effect. Don't need to read, then write back, just write directly.
@@ -1244,4 +1244,67 @@ Why using a write-1-to-clear approach?
 ### WDT(WatchDog Timer)
 
 ![Screenshot from 2023-08-20 06-02-22](assets/Screenshot from 2023-08-20 06-02-22.png)
+
+## 系统移植
+
+![image-20230821020815640](assets/image-20230821020815640.png)
+
+![image-20230821020836983](assets/image-20230821020836983.png)
+
+![image-20230821021056947](assets/image-20230821021056947.png)
+
+![image-20230821023601868](assets/image-20230821023601868.png)
+
+### tftp
+
+### nfs
+
+### bootloader
+
+#### U-BOOT命令
+
+**命令分类**
+
+环境设置、数据传输、存储器访问、加载运行
+
+```shell
+# 显示所有环境变量
+printenv
+# 设置新的环境变量
+setenv myboard fs4412
+# 删除一个环境变量
+setenv myboard
+# 将当前定义的所有环境变量存入flash中
+saveenv
+# 通过网络传输文件tftp（Trivial File Transfer Protocol）
+setenv ipaddr 192.168.1.100
+setenv serverip 192.168.1.10
+tftp 41000000 uImage
+# Nand Flash相关命令
+nand read addr off size
+nand write addr off size
+nand erase [clean] [off size]
+# eMMC(三星闪存embedded MultiMediaCard)相关命令
+movi init
+movi read u-boot/kernel addr
+movi write u-boot/kernel addr
+movi read rootfs addr size
+movi write rootfs addr size
+# 自启动相关
+## 设置自动启动等待时间，若为负数则会无限期等待
+setenv bootdelay 3
+## 如果定义了该变量，在自启动模式下将会执行该环境变量中的命令
+setenv bootcmd tftp 41000000 uImage\; bootm 41000000
+## 示例
+bootargs=root=/dev/nfs nfsroot=192.168.0.88:/source/rootfs rw console=ttySAC2, 115200 init=/linuxrc ip=192.168.0.33
+bootcmd=tftp 41000000 uImage; tftp 42000000 exyncs4412-fs4412.dtb; bootm 41000000 - 42000000
+# 执行内存中的二进制代码，简单的跳转到指定地址
+go addr
+# 引导内核为内核传参，其中内核和ramdisk通常为mkimage处理过的二进制文件
+bootm kernel_addr ramdisk_addr dtb_addr
+```
+
+![image-20230821091311587](assets/image-20230821091311587.png)
+
+
 
