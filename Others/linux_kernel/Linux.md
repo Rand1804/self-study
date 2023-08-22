@@ -1308,3 +1308,23 @@ bootm kernel_addr ramdisk_addr dtb_addr
 
 
 
+#### U-BOOT移植
+
+![image-20230822065618273](assets/image-20230822065618273.png)
+
+Here's a high-level sequence of events for **U-Boot starting** from an SD card:
+
+1. Power-Up / Reset:
+   - The system powers up or is reset.
+2. ROM Code Execution:
+   - The SoC's internal ROM code (or primary bootloader) starts executing. This is the first code that runs when the system starts up, and it is hard-coded into the SoC itself.
+3. Initialize Basic Peripherals:
+   - The ROM code initializes the very basic peripherals required for further booting, which often includes the SD card interface if booting from SD is supported by the hardware.
+4. Load Secondary Bootloader (e.g., U-Boot SPL):
+   - The ROM code will then look for a secondary bootloader on the SD card. This might be the U-Boot SPL (Secondary Program Loader). It reads this into RAM and starts its execution.
+5. U-Boot SPL Execution:
+   - The SPL initializes more peripherals, sets up the memory (RAM), possibly sets up clocks, etc. It also initializes the SD card interface if not done already by the ROM code.
+6. Load U-Boot:
+   - Once the SPL finishes its tasks, it loads the main U-Boot binary from the SD card into RAM and transfers control to it.
+7. U-Boot Execution:
+   - U-Boot initializes any remaining peripherals, sets up the environment, and provides an interface for user interaction. It then can load a kernel and start the booting process.
