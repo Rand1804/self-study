@@ -682,7 +682,7 @@ int sqlite3_exec(
 
 ![image-20230720054128467](assets/image-20230720054128467.png)
 
-## ARM
+# ARM
 
 ![image-20230726220226171](assets/image-20230726220226171.png)
 
@@ -1328,3 +1328,34 @@ Here's a high-level sequence of events for **U-Boot starting** from an SD card:
    - Once the SPL finishes its tasks, it loads the main U-Boot binary from the SD card into RAM and transfers control to it.
 7. U-Boot Execution:
    - U-Boot initializes any remaining peripherals, sets up the environment, and provides an interface for user interaction. It then can load a kernel and start the booting process.
+
+![image-20230823021922771](assets/image-20230823021922771.png)
+
+# Linux内核
+
+![image-20230823024119744](assets/image-20230823024119744.png)
+
+- 进程管理
+- 内存管理
+- 文件系统
+- 网络协议
+- 设备管理
+
+![image-20230823032235379](assets/image-20230823032235379.png)
+
+![image-20230823032440495](assets/image-20230823032440495.png)
+
+![image-20230823052534857](assets/image-20230823052534857.png)
+
+![image-20230823053501520](assets/image-20230823053501520.png)
+
+![image-20230823053542596](assets/image-20230823053542596.png)
+
+![image-20230823055144349](assets/image-20230823055144349.png)
+
+![image-20230823091556850](assets/image-20230823091556850.png)
+
+### 内核移植
+
+![image-20230823091709479](assets/image-20230823091709479.png)
+
