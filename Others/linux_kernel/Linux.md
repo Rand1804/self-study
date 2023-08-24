@@ -1359,3 +1359,6 @@ Here's a high-level sequence of events for **U-Boot starting** from an SD card:
 
 ![image-20230823091709479](assets/image-20230823091709479.png)
 
+### 网卡移植
+
+![image-20230824083419960](assets/image-20230824083419960.png)
