@@ -1371,3 +1371,64 @@ CPU与设备连接描述
 
 ![image-20230825001629313](assets/image-20230825001629313.png)
 
+# Linux驱动开发
+
+### Makefile模板
+
+```makefile
+ROOTFS_DIR = /opt/4412/rootfs
+
+ifeq ($(KERNELRELEASE), )
+KERNEL_DIR = /home/code/linux-3.14
+CUR_DIR = $(shell pwd)
+
+all:
+	make -C $(KERNEL_DIR) M=$(CUR_DIR) modules
+clean:
+	make -C $(KERNEL_DIR) M=$(CUR_DIR) clean
+install:
+	cp -raf *.ko $(ROOTFS_DIR)/drv_module
+	
+else
+obj-m += led.o
+
+endif
+```
+
+在开发板上装载module驱动
+
+```bash
+# 装载指定模块
+insmod led.ko  
+# 查看系统中装载过哪些模块
+lsmod
+# 卸载
+rmmod led
+```
+
+驱动模块开发：
+
+1.参数传递
+
+​	加载ko：	insmod led.ko myname="wuwt" myval=33
+
+​	用途：wifi驱动，wifi硬件内部也运行内部代码（由wifi厂商开发，这些代码叫做固件--firmware.bin）
+
+​				装载wifi驱动，必须告诉固件的文件在哪里
+
+​				insmod rtxxx.ko path=/lib/modules/firmware/xxx.bin
+
+​	在代码中如何处理参数？
+
+​		`module_param(name, type, perm)`由宏定义获取
+
+​		参数1：表示参数的名字， 比如myname, myval
+
+​		参数2： 参数的类型，charp, int
+
+​		参数3：/sys/modules/表示文件的权限： 0666
+
+/home/wuwt/code/linux-3.14/include/linux/preempt.h
+
+> **to find header**
+> ` find / | grep mach/memory.h >tmp`

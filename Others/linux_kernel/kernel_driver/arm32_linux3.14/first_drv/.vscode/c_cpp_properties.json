@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "linux-kernel-arm32",
+            "includePath": [
+                "/home/wuwt/code/linux-3.14/include/**",
+                "/home/wuwt/code/linux-3.14/arch/arm/**"
+            ],
+            "forcedInclude": [
+                "/home/wuwt/code/linux-3.14/include/generated/autoconf.h"
+            ],
+            "defines": [
+                "__KERNEL__",
+                "MODULE"
+            ],
+            "compilerPath": "/home/wuwt/software/gcc-linaro-4.9-2016.02-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc",
+            "cStandard": "gnu11",
+            "intelliSenseMode": "linux-gcc-arm"
+        }
+    ],
+    "version": 4
+}

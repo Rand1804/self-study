@@ -1,0 +1,21 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_EXCMD	mixed	/number, pattern, mixed, or combineV2/
+!_TAG_OUTPUT_FILESEP	slash	/slash or backslash/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PATTERN_LENGTH_LIMIT	96	/0 for no limit/
+!_TAG_PROC_CWD	/home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/	//
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	5.9.0	//
+CUR_DIR	Makefile	/^CUR_DIR = $(shell pwd)$/;"	m
+KERNEL_DIR	Makefile	/^KERNEL_DIR = \/home\/wuwt\/code\/linux-3.14$/;"	m
+ROOTFS_DIR	Makefile	/^ROOTFS_DIR = \/opt\/4412\/rootfs$/;"	m
+__module_depends	led4412.mod.c	/^static const char __module_depends[]$/;"	v	typeref:typename:const char[]__used	file:
+__this_module	led4412.mod.c	/^__visible struct module __this_module$/;"	v	typeref:struct:module
+all	Makefile	/^all:$/;"	t
+clean	Makefile	/^clean:$/;"	t
+install	Makefile	/^install:$/;"	t
+led_exit	led4412.c	/^static void __exit led_exit(void)$/;"	f	typeref:typename:void __exit	file:
+led_init	led4412.c	/^static int __init led_init(void)$/;"	f	typeref:typename:int __init	file:
