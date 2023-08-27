@@ -1,23 +1,25 @@
-cmd_/home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/led4412.o := /home/wuwt/software/gcc-linaro-4.9-2016.02-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc -Wp,-MD,/home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/.led4412.o.d -nostdinc -isystem /home/wuwt/software/gcc-linaro-4.9-2016.02-x86_64_arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/4.9.4/include -I/home/wuwt/code/linux-3.14/arch/arm/include -Iarch/arm/include/generated  -Iinclude -I/home/wuwt/code/linux-3.14/arch/arm/include/uapi -Iarch/arm/include/generated/uapi -I/home/wuwt/code/linux-3.14/include/uapi -Iinclude/generated/uapi -include /home/wuwt/code/linux-3.14/include/linux/kconfig.h -D__KERNEL__ -mlittle-endian -Iarch/arm/mach-exynos/include -Iarch/arm/plat-samsung/include -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration -Wno-format-security -fno-delete-null-pointer-checks -O2 -fno-dwarf2-cfi-asm -mabi=aapcs-linux -mno-thumb-interwork -mfpu=vfp -funwind-tables -marm -D__LINUX_ARM_ARCH__=7 -march=armv7-a -msoft-float -Uarm -Wframe-larger-than=1024 -fno-stack-protector -Wno-unused-but-set-variable -fomit-frame-pointer -g -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fconserve-stack -Werror=implicit-int -Werror=strict-prototypes -Werror=date-time -DCC_HAVE_ASM_GOTO  -DMODULE  -D"KBUILD_STR(s)=#s" -D"KBUILD_BASENAME=KBUILD_STR(led4412)"  -D"KBUILD_MODNAME=KBUILD_STR(led4412)" -c -o /home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/led4412.o /home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/led4412.c
+cmd_/home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/math.mod.o := /home/wuwt/software/gcc-linaro-4.9-2016.02-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc -Wp,-MD,/home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/.math.mod.o.d -nostdinc -isystem /home/wuwt/software/gcc-linaro-4.9-2016.02-x86_64_arm-linux-gnueabihf/bin/../lib/gcc/arm-linux-gnueabihf/4.9.4/include -I/home/wuwt/code/linux-3.14/arch/arm/include -Iarch/arm/include/generated  -Iinclude -I/home/wuwt/code/linux-3.14/arch/arm/include/uapi -Iarch/arm/include/generated/uapi -I/home/wuwt/code/linux-3.14/include/uapi -Iinclude/generated/uapi -include /home/wuwt/code/linux-3.14/include/linux/kconfig.h -D__KERNEL__ -mlittle-endian -Iarch/arm/mach-exynos/include -Iarch/arm/plat-samsung/include -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration -Wno-format-security -fno-delete-null-pointer-checks -O2 -fno-dwarf2-cfi-asm -mabi=aapcs-linux -mno-thumb-interwork -mfpu=vfp -funwind-tables -marm -D__LINUX_ARM_ARCH__=7 -march=armv7-a -msoft-float -Uarm -Wframe-larger-than=1024 -fno-stack-protector -Wno-unused-but-set-variable -fomit-frame-pointer -g -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fconserve-stack -Werror=implicit-int -Werror=strict-prototypes -Werror=date-time -DCC_HAVE_ASM_GOTO  -D"KBUILD_STR(s)=#s" -D"KBUILD_BASENAME=KBUILD_STR(math.mod)"  -D"KBUILD_MODNAME=KBUILD_STR(math)" -DMODULE  -c -o /home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/math.mod.o /home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/math.mod.c
 
-source_/home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/led4412.o := /home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/led4412.c
+source_/home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/math.mod.o := /home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/math.mod.c
 
-deps_/home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/led4412.o := \
-  include/linux/init.h \
-    $(wildcard include/config/broken/rodata.h) \
+deps_/home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/math.mod.o := \
+  include/linux/module.h \
+    $(wildcard include/config/sysfs.h) \
     $(wildcard include/config/modules.h) \
-  include/linux/compiler.h \
-    $(wildcard include/config/sparse/rcu/pointer.h) \
-    $(wildcard include/config/trace/branch/profiling.h) \
-    $(wildcard include/config/profile/all/branches.h) \
-    $(wildcard include/config/enable/must/check.h) \
-    $(wildcard include/config/enable/warn/deprecated.h) \
-    $(wildcard include/config/kprobes.h) \
-  include/linux/compiler-gcc.h \
-    $(wildcard include/config/arch/supports/optimized/inlining.h) \
-    $(wildcard include/config/optimize/inlining.h) \
-  include/linux/compiler-gcc4.h \
-    $(wildcard include/config/arch/use/builtin/bswap.h) \
+    $(wildcard include/config/unused/symbols.h) \
+    $(wildcard include/config/module/sig.h) \
+    $(wildcard include/config/generic/bug.h) \
+    $(wildcard include/config/kallsyms.h) \
+    $(wildcard include/config/smp.h) \
+    $(wildcard include/config/tracepoints.h) \
+    $(wildcard include/config/tracing.h) \
+    $(wildcard include/config/event/tracing.h) \
+    $(wildcard include/config/ftrace/mcount/record.h) \
+    $(wildcard include/config/module/unload.h) \
+    $(wildcard include/config/constructors.h) \
+    $(wildcard include/config/debug/set/module/ronx.h) \
+  include/linux/list.h \
+    $(wildcard include/config/debug/list.h) \
   include/linux/types.h \
     $(wildcard include/config/uid16.h) \
     $(wildcard include/config/lbdaf.h) \
@@ -34,24 +36,20 @@ deps_/home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.1
   /home/wuwt/code/linux-3.14/include/uapi/linux/posix_types.h \
   include/linux/stddef.h \
   include/uapi/linux/stddef.h \
+  include/linux/compiler.h \
+    $(wildcard include/config/sparse/rcu/pointer.h) \
+    $(wildcard include/config/trace/branch/profiling.h) \
+    $(wildcard include/config/profile/all/branches.h) \
+    $(wildcard include/config/enable/must/check.h) \
+    $(wildcard include/config/enable/warn/deprecated.h) \
+    $(wildcard include/config/kprobes.h) \
+  include/linux/compiler-gcc.h \
+    $(wildcard include/config/arch/supports/optimized/inlining.h) \
+    $(wildcard include/config/optimize/inlining.h) \
+  include/linux/compiler-gcc4.h \
+    $(wildcard include/config/arch/use/builtin/bswap.h) \
   /home/wuwt/code/linux-3.14/arch/arm/include/uapi/asm/posix_types.h \
   /home/wuwt/code/linux-3.14/include/uapi/asm-generic/posix_types.h \
-  include/linux/module.h \
-    $(wildcard include/config/sysfs.h) \
-    $(wildcard include/config/unused/symbols.h) \
-    $(wildcard include/config/module/sig.h) \
-    $(wildcard include/config/generic/bug.h) \
-    $(wildcard include/config/kallsyms.h) \
-    $(wildcard include/config/smp.h) \
-    $(wildcard include/config/tracepoints.h) \
-    $(wildcard include/config/tracing.h) \
-    $(wildcard include/config/event/tracing.h) \
-    $(wildcard include/config/ftrace/mcount/record.h) \
-    $(wildcard include/config/module/unload.h) \
-    $(wildcard include/config/constructors.h) \
-    $(wildcard include/config/debug/set/module/ronx.h) \
-  include/linux/list.h \
-    $(wildcard include/config/debug/list.h) \
   include/linux/poison.h \
     $(wildcard include/config/illegal/pointer/value.h) \
   /home/wuwt/code/linux-3.14/include/uapi/linux/const.h \
@@ -147,6 +145,8 @@ deps_/home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.1
     $(wildcard include/config/early/printk.h) \
     $(wildcard include/config/printk.h) \
     $(wildcard include/config/dynamic/debug.h) \
+  include/linux/init.h \
+    $(wildcard include/config/broken/rodata.h) \
   include/linux/kern_levels.h \
   include/linux/dynamic_debug.h \
   include/linux/string.h \
@@ -425,8 +425,9 @@ deps_/home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.1
     $(wildcard include/config/have/mod/arch/specific.h) \
     $(wildcard include/config/modules/use/elf/rel.h) \
     $(wildcard include/config/modules/use/elf/rela.h) \
-  /home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/math.h \
+  include/linux/vermagic.h \
+  include/generated/utsrelease.h \
 
-/home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/led4412.o: $(deps_/home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/led4412.o)
+/home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/math.mod.o: $(deps_/home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/math.mod.o)
 
-$(deps_/home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/led4412.o):
+$(deps_/home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/math.mod.o):

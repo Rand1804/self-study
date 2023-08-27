@@ -1432,3 +1432,70 @@ rmmod led
 
 > **to find header**
 > ` find / | grep mach/memory.h >tmp`
+
+### c_cpp_properties.json
+
+驱动开发微软官方插件配置文件
+
+```json
+{
+    "env": {
+        "LINUX_SRC": "/home/wuwt/code/linux-3.14"
+    },
+    "configurations": [
+        {
+            "name": "linux-kernel-arm32",
+            
+            "includePath": [
+                "${LINUX_SRC}/arch/arm/include",
+                "${LINUX_SRC}/arch/arm/include/generated",
+                "${LINUX_SRC}/include",
+                "${LINUX_SRC}/arch/arm/include/uapi",
+                "${LINUX_SRC}/arch/arm/include/generated/uapi",
+                "${LINUX_SRC}/include/uapi",
+                "${LINUX_SRC}/include/generated/uapi",
+                "${LINUX_SRC}/arch/arm/mach-exynos/include"
+            ],
+            "forcedInclude": [
+                "${LINUX_SRC}/include/generated/autoconf.h"
+            ],
+            "defines": [
+                "__KERNEL__",
+                "MODULE"
+            ],
+            "compileCommands": "${workspaceFolder}/compile_commands.json",
+            "compilerPath": "/home/wuwt/software/gcc-linaro-4.9-2016.02-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-arm"
+        }
+    ],
+    "version": 4
+}
+```
+
+> 可能的备用include路径：
+>
+> - `"/home/wuwt/software/gcc-linaro-4.9-2016.02-x86_64_arm-linux-gnueabihf/include"`
+
+### setting.json
+
+```json
+{
+    "C_Cpp.default.compilerPath": "/home/wuwt/software/gcc-linaro-4.9-2016.02-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc",
+    "files.associations": {
+        "*.c": "c",
+        "*.h": "c"
+    },
+}
+```
+
+
+
+### Clangd
+
+优势：跟踪编译过程进行函数跳转，有多个同名函数时也能够正确跳转
+
+1. 安装vscode Clangd 插件
+2. 使用`bear make`命令重新编译，并让clangd记录编译过程，生成`compile_commands.json`。然后clangd根据该文件进行解析目录，生成索引文件，在`.cache/clangd/index/`
+
