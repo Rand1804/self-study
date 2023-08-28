@@ -11,7 +11,7 @@ module_param(myval, int, S_IRUGO);
 module_param(mystr, charp, S_IRUGO);
 
 static int __init led_init(void)
-{
+{       
     printk("--------------%s----------------\n", __FUNCTION__);
     printk("myval=%d\n", myval);
     printk("mystr=%s\n", mystr);
@@ -29,7 +29,6 @@ module_init(led_init);
 module_exit(led_exit);
 
 MODULE_LICENSE("GPL");
-
 
 
 

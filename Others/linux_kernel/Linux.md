@@ -1499,3 +1499,42 @@ rmmod led
 1. 安装vscode Clangd 插件
 2. 使用`bear make`命令重新编译，并让clangd记录编译过程，生成`compile_commands.json`。然后clangd根据该文件进行解析目录，生成索引文件，在`.cache/clangd/index/`
 
+### 字符设备
+
+1. 字符设备驱动框架，作为字符设备驱动的要素
+
+   1. 必须有一个设备号，用于在众多的驱动设备中进行区分
+
+   2. 用户必须知道设备驱动对应到设备节点（设备文件）
+
+      - linux把所有的设备都看成文件
+
+        ```shell
+        crw-------  1 root root    251,     0 Aug 28 04:54 rtc0
+        brw-rw----  1 root disk      8,     0 Aug 28 04:54 sda
+        brw-rw----  1 root disk      8,     1 Aug 28 04:54 sda1
+        brw-rw----  1 root disk      8,     2 Aug 28 04:54 sda2
+        brw-rw----  1 root disk      8,     3 Aug 28 04:54 sda3
+        brw-rw----  1 root disk      8,    16 Aug 28 04:54 sdb
+        brw-rw----  1 root disk      8,    17 Aug 28 04:54 sdb1
+        ```
+
+   3. 对设备操作其实就是对文件操作，应用空间操作open,read,write,实际在驱动代码有对应的open,read,write
+
+2. 作为驱动必须有一个设备号--向系统申请
+
+   ```c
+   int register_chrdev(unsigned int major, const char *name, const struct file_operations *fops){}
+   /*
+   参数1：主设备号
+       设备号（32bit） == 主设备号（12bit） + 次设备号（20bit）
+       次设备号：表示一类设备中某一个
+   参数2：描述一个设备信息，可以自定义
+   		/sys/devices列举出所有的已经注册的设备
+   		/sys/module/<module_name>/parameters/myval
+   参数3：文件操作对象--提供open,read,write(Pointer to the file_operations structure that defines the operations that can be invoked on this device.)
+   返回值：正确返回0,错误返回负数
+   ```
+
+   
+
