@@ -1529,12 +1529,16 @@ rmmod led
    参数1：主设备号
        设备号（32bit） == 主设备号（12bit） + 次设备号（20bit）
        次设备号：表示一类设备中某一个
+     	给定到方式有两种：
+       	1.动态--参数1直接0
+       	2.静态--指定一个整数，12bit以内
    参数2：描述一个设备信息，可以自定义
    		/sys/devices列举出所有的已经注册的设备
    		/sys/module/<module_name>/parameters/myval
    参数3：文件操作对象--提供open,read,write(Pointer to the file_operations structure that defines the operations that can be invoked on this device.)
    返回值：正确返回0,错误返回负数
+   */
    ```
-
+   
    
 
