@@ -1540,5 +1540,164 @@ rmmod led
    */
    ```
    
-   
 
+### 字符设备驱动开发框架
+
+```c
+#include <linux/module.h>
+#include <linux/fs.h>
+#include <linux/cdev.h>
+#include <linux/device.h>
+#include <linux/uaccess.h>
+#include <linux/moduleparam.h>
+
+#define DEVICE_NAME "chardev"
+
+static int majorNumber;
+static struct class* charClass = NULL;
+static struct device* charDevice = NULL;
+static int example_param = 0;  // Default value
+module_param(example_param, int, S_IRUGO); // Permissions set to read-only
+MODULE_PARM_DESC(example_param, "An example parameter"); // Description
+
+// Function prototypes for the character driver
+static int dev_open(struct inode*, struct file*);
+static int dev_release(struct inode*, struct file*);
+static ssize_t dev_read(struct file*, char*, size_t, loff_t*);
+static ssize_t dev_write(struct file*, const char*, size_t, loff_t*);
+
+// File operations structure
+static struct file_operations fops = {
+    .open = dev_open,
+    .read = dev_read,
+    .write = dev_write,
+    .release = dev_release,
+};
+
+static int __init chardev_init(void) {
+    majorNumber = register_chrdev(0, DEVICE_NAME, &fops);
+    if (majorNumber < 0) {
+        printk(KERN_ALERT "Failed to register a major number\n");
+        return majorNumber;
+    }
+    charClass = class_create(THIS_MODULE, DEVICE_NAME);
+    if (IS_ERR(charClass)) {
+        unregister_chrdev(majorNumber, DEVICE_NAME);
+        return PTR_ERR(charClass);
+    }
+    charDevice = device_create(charClass, NULL, MKDEV(majorNumber, 0), NULL, DEVICE_NAME);
+    if (IS_ERR(charDevice)) {
+        class_destroy(charClass);
+        unregister_chrdev(majorNumber, DEVICE_NAME);
+        return PTR_ERR(charDevice);
+    }
+    printk(KERN_INFO "Character device driver initialized with parameter = %d\n", example_param);
+    return 0;
+}
+
+static void __exit chardev_exit(void) {
+    device_destroy(charClass, MKDEV(majorNumber, 0));
+    class_unregister(charClass);
+    class_destroy(charClass);
+    unregister_chrdev(majorNumber, DEVICE_NAME);
+    printk(KERN_INFO "Character device driver unloaded.\n");
+}
+
+static int dev_open(struct inode* inodep, struct file* filep) {
+    printk(KERN_INFO "Device opened\n");
+    return 0;
+}
+
+static ssize_t dev_read(struct file* filep, char* buffer, size_t len, loff_t* offset) {
+    printk(KERN_INFO "Read from device\n");
+    // Implement data reading logic here
+    return 0; // Return number of bytes read
+}
+
+static ssize_t dev_write(struct file* filep, const char* buffer, size_t len, loff_t* offset) {
+    printk(KERN_INFO "Write to device\n");
+    // Implement data writing logic here
+    return len; // Return number of bytes written
+}
+
+static int dev_release(struct inode* inodep, struct file* filep) {
+    printk(KERN_INFO "Device closed\n");
+    return 0;
+}
+
+module_init(chardev_init);
+module_exit(chardev_exit);
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Your Name");
+MODULE_DESCRIPTION("Sample Character Device Driver");
+MODULE_VERSION("0.1");
+
+```
+
+
+
+```c
+// ... [your previous includes]
+#include <linux/cdev.h>   // This includes support for character devices
+
+// ... [your previous variables]
+static struct cdev my_cdev; // The cdev structure
+static dev_t dev_num; // Will hold the major/minor number
+
+static int __init chardev_init(void) {
+    // Dynamically allocate a major number for the device
+    if (alloc_chrdev_region(&dev_num, 0, 1, DEVICE_NAME) < 0) {
+        printk(KERN_ALERT "Failed to allocate a major number\n");
+        return -1;
+    }
+    majorNumber = MAJOR(dev_num); // Extract the major number
+
+    // Initialize the cdev structure and add it to the kernel
+    cdev_init(&my_cdev, &fops);
+    if (cdev_add(&my_cdev, dev_num, 1) == -1) {
+        unregister_chrdev_region(dev_num, 1);
+        return -1;
+    }
+
+    charClass = class_create(THIS_MODULE, DEVICE_NAME);
+    if (IS_ERR(charClass)) {
+        cdev_del(&my_cdev);
+        unregister_chrdev_region(dev_num, 1);
+        return PTR_ERR(charClass);
+    }
+    
+    charDevice = device_create(charClass, NULL, dev_num, NULL, DEVICE_NAME);
+    if (IS_ERR(charDevice)) {
+        class_destroy(charClass);
+        cdev_del(&my_cdev);
+        unregister_chrdev_region(dev_num, 1);
+        return PTR_ERR(charDevice);
+    }
+    
+    printk(KERN_INFO "Character device driver initialized with parameter = %d\n", example_param);
+    return 0;
+}
+
+static void __exit chardev_exit(void) {
+    device_destroy(charClass, dev_num);
+    class_unregister(charClass);
+    class_destroy(charClass);
+    cdev_del(&my_cdev);  // Remove the cdev
+    unregister_chrdev_region(dev_num, 1);  // Unregister the device numbers
+    printk(KERN_INFO "Character device driver unloaded.\n");
+}
+
+// ... [rest of your functions and module info]
+
+```
+
+
+
+**步骤和规范**：
+
+1. 实现模块加载和卸载入口函数
+2. 在模块加载入口函数中
+   - 申请主设备号（内核中用于区分和管理不同字符设备）
+     - register
+   - 

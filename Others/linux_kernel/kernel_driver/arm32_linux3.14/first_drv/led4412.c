@@ -10,11 +10,14 @@ char *mystr = "hello";
 module_param(myval, int, S_IRUGO);
 module_param(mystr, charp, S_IRUGO);
 
+static unsigned int dev_major = 250;
+
+
+
 static int __init led_init(void)
 {       
     printk("--------------%s----------------\n", __FUNCTION__);
-    printk("myval=%d\n", myval);
-    printk("mystr=%s\n", mystr);
+    
 
     printk("a+b=%d\n", my_add(1, 2));
     return 0;

@@ -13,6 +13,6 @@ install:
 	
 else
 obj-m += led4412.o
-obj-m += math.o
+# obj-m += math.o
 
 endif
