@@ -1697,7 +1697,24 @@ static void __exit chardev_exit(void) {
 **步骤和规范**：
 
 1. 实现模块加载和卸载入口函数
+
 2. 在模块加载入口函数中
    - 申请主设备号（内核中用于区分和管理不同字符设备）
-     - register
-   - 
+     - register_chrdev(dev_major, "chr_dev_test", &my_fops);
+     
+   - 创建设备节点文件（为用户提供一个可操作的文件接口--open()）
+   
+     - ```c
+       struct class *class_create(THIS_MODULE, "chr_cls");
+       struct device *device_create(devcls, NULL, MKDEV(dev_major, 0), NULL, "chr2");
+       ```
+   
+   - 硬件的初始化
+   
+     - 地址映射
+       - `gpx2con = ioremap(GPX2_CON, GPX2_SIZE);`
+     - 中断申请
+     - 实现硬件的寄存器初始化
+       - `*gpx2conf &= ~(0xf<<28); *gpx2conf |= (0x1<<28);`
+   
+   - 实现file_operation
