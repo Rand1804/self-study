@@ -17,5 +17,7 @@ __attribute__((section(".gnu.linkonce.this_module"))) = {
 static const char __module_depends[]
 __used
 __attribute__((section(".modinfo"))) =
-"depends=math";
+"depends=";
 
+
+MODULE_INFO(srcversion, "67BC8E308FD034F7CF909E2");

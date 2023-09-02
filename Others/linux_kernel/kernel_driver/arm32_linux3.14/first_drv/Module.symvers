@@ -1,2 +1,0 @@
-0x00000000	my_sub	/home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/math	EXPORT_SYMBOL
-0x00000000	my_add	/home/wuwt/code/self-study/Others/linux_kernel/kernel_driver/arm32_linux3.14/first_drv/math	EXPORT_SYMBOL
