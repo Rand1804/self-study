@@ -1718,3 +1718,54 @@ static void __exit chardev_exit(void) {
        - `*gpx2conf &= ~(0xf<<28); *gpx2conf |= (0x1<<28);`
    
    - 实现file_operation
+
+## 附录：tools used in linux kernel development
+
+```markdown
+In the context of developing and building Linux kernel modules, several tools and software are often used to assist developers. Here are some of the most commonly used ones:
+
+1. **The GCC Compiler (and Binutils)**: 
+   - The GNU Compiler Collection, especially the `gcc`, is the primary tool for compiling the Linux kernel and its modules.
+   
+2. **Make**:
+   - The build process for the kernel and its modules is controlled by Makefiles. Invoking `make` commands, as you've shown, drives the build process.
+
+3. **Sparse**:
+   - As previously discussed, Sparse is a tool used for semantic checking of the kernel code, helping catch certain types of errors.
+
+4. **Ctags and Cscope**:
+   - These are tools for navigating large codebases like the Linux kernel. They help in finding function definitions, variable declarations, and other code references quickly.
+
+5. **Git**:
+   - The Linux kernel source code is managed using the Git version control system. Familiarity with Git is crucial for kernel developers to fetch the latest kernel code, submit patches, and track changes.
+
+6. **Kconfig**:
+   - The Linux kernel uses a configuration system (`Kconfig`) to enable or disable certain features or drivers. Tools like `menuconfig`, `xconfig`, or `nconfig` provide interfaces to configure the kernel.
+
+7. **QEMU**:
+   - QEMU is a generic and open-source machine emulator and virtualizer. It's useful for kernel developers as it allows them to boot and test their custom kernel or modules in a virtual environment.
+
+8. **KGDB (Kernel GNU Debugger)**:
+   - This is a debugger for the Linux kernel. It allows developers to debug the kernel in its running state.
+
+9. **Kprobes, Jprobes, and Uprobes**:
+   - These are kernel features that allow you to dynamically break into any kernel routine or user-space function and collect debugging and performance information non-disruptively.
+
+10. **Perf**:
+   - The Linux `perf` tool provides rich commands to collect and analyze performance and trace data in the kernel.
+
+11. **LTTng (Linux Trace Toolkit Next Generation)**:
+   - This is a highly efficient tracing tool for Linux. It can trace the kernel, user processes, and even user-space applications.
+
+12. **BPF (and eBPF)**:
+   - BPF is a highly efficient and flexible tracing tool that's getting more attention in the Linux kernel community. It allows for custom tracing, networking, and even security programs to be run within the kernel, offering high performance and safety.
+
+13. **modprobe and lsmod**:
+   - These are basic utilities for loading and managing kernel modules.
+
+14. **Editor/IDE**:
+   - While not specific to kernel development, tools like Vim, Emacs, or even more advanced IDEs like Eclipse or Visual Studio Code (with the right plugins/extensions) can be quite useful. Kernel developers often have a preference, with many gravitating towards Vim or Emacs due to their powerful text manipulation capabilities.
+
+This is by no means an exhaustive list, but these are some of the tools that are often encountered when working with Linux kernel development.
+```
+

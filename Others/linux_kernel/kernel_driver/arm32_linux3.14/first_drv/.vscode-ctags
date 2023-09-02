@@ -9,13 +9,28 @@
 !_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
 !_TAG_PROGRAM_URL	https://ctags.io/	/official site/
 !_TAG_PROGRAM_VERSION	5.9.0	//
+CLASS_NAME	led4412.c	/^#define CLASS_NAME /;"	d	file:
 CUR_DIR	Makefile	/^CUR_DIR = $(shell pwd)$/;"	m
+DEVICE_NAME	led4412.c	/^#define DEVICE_NAME /;"	d	file:
+GPL2CON	led4412.c	/^#define GPL2CON /;"	d	file:
+GPL2_SIZE	led4412.c	/^#define GPL2_SIZE /;"	d	file:
 KERNEL_DIR	Makefile	/^KERNEL_DIR = \/home\/wuwt\/code\/linux-3.14$/;"	m
 ROOTFS_DIR	Makefile	/^ROOTFS_DIR = \/opt\/4412\/rootfs$/;"	m
+__MATH_H__	math.h	/^#define __MATH_H__$/;"	d
 __module_depends	led4412.mod.c	/^static const char __module_depends[]$/;"	v	typeref:typename:const char[]__used	file:
+__module_depends	math.mod.c	/^static const char __module_depends[]$/;"	v	typeref:typename:const char[]__used	file:
 __this_module	led4412.mod.c	/^__visible struct module __this_module$/;"	v	typeref:struct:module
+__this_module	math.mod.c	/^__visible struct module __this_module$/;"	v	typeref:struct:module
 all	Makefile	/^all:$/;"	t
+charClass	led4412.c	/^static struct class *charClass = NULL;$/;"	v	typeref:struct:class *	file:
+charDevice	led4412.c	/^static struct device *charDevice = NULL;$/;"	v	typeref:struct:device *	file:
 clean	Makefile	/^clean:$/;"	t
+fops	led4412.c	/^static struct file_operations fops = {$/;"	v	typeref:struct:file_operations	file:
+gpl2conf	led4412.c	/^static void __iomem *gpl2conf = NULL;$/;"	v	typeref:typename:void __iomem *	file:
 install	Makefile	/^install:$/;"	t
 led_exit	led4412.c	/^static void __exit led_exit(void)$/;"	f	typeref:typename:void __exit	file:
 led_init	led4412.c	/^static int __init led_init(void)$/;"	f	typeref:typename:int __init	file:
+led_open	led4412.c	/^static int led_open(struct inode *inodep, struct file *filep) {$/;"	f	typeref:typename:int	file:
+majorNumber	led4412.c	/^static int majorNumber;$/;"	v	typeref:typename:int	file:
+my_add	math.c	/^int my_add(int a, int b) {$/;"	f	typeref:typename:int
+my_sub	math.c	/^int my_sub(int a, int b) {$/;"	f	typeref:typename:int
