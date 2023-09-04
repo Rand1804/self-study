@@ -1771,3 +1771,8 @@ In the context of developing and building Linux kernel modules, several tools an
 This is by no means an exhaustive list, but these are some of the tools that are often encountered when working with Linux kernel development.
 ```
 
+## 常用信息文件
+
+- 驱动信息：`/proc/devices`
+- cpu信息：`/proc/cpuinfo`
+- 中断信息：`/proc/interrupts`
