@@ -29,10 +29,37 @@ const struct file_operations key_fops = {
 
 
 static int __init key_drv_init(void) {
+    int ret;
+
     key_dev = kzalloc(sizeof(struct key_desc), GFP_KERNEL);
+    if (!key_dev) {
+        return -ENOMEM;
+    }
     key_dev->dev_major = register_chrdev(key_dev->dev_major, CHRDEV_NAME, &key_fops);
+    if (key_dev->dev_major < 0) {
+        ret = key_dev->dev_major;
+        goto err_register_chrdev;
+    }
     key_dev->cls = class_create(THIS_MODULE, CLS_NAME);
+    if (IS_ERR(key_dev->cls)) {
+        ret = PTR_ERR(key_dev->cls);
+        goto err_class_create;
+    }
     key_dev->dev = device_create(key_dev->cls, NULL, MKDEV(key_dev->dev_major, 0), NULL, DEV_NAME);
+    if (IS_ERR(key_dev->dev)) {
+        ret = PTR_ERR(key_dev->dev);
+        goto err_device_create;
+    }
+
+err_device_create:
+    class_destroy(key_dev->cls);
+
+err_class_create:
+    unregister_chrdev(key_dev->dev_major, CHRDEV_NAME);
+
+err_register_chrdev:
+    kfree(key_dev);
+    return ret;
 
 
 }

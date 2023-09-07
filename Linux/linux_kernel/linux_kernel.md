@@ -1776,3 +1776,116 @@ This is by no means an exhaustive list, but these are some of the tools that are
 - 驱动信息：`/proc/devices`
 - cpu信息：`/proc/cpuinfo`
 - 中断信息：`/proc/interrupts`
+
+## 开发环境配置
+
+- 通过tftp去启动内核
+
+  - 将uImage和dtb文件放入到ubuntu中/tftpboot
+  - 在开发板中设置uboot参数，使其能够去加载内核
+
+  ```shell
+  bootdelay=2
+  baudrate=115200
+  stdin=serial
+  stdout=serial
+  stderr=serial
+  bootcmd=movi read kernel 40008000;movi read rootfs 40df0000 100000;bootm 40008000 40df0000
+  
+  Environment size: 160/16380 bytes
+  ```
+
+  ```
+  set ipaddr 192.168.7.22
+  set serverip 192.168.7.21
+  set bootcmd tftp 0x41000000 uImage \; tftp 0x42000000 exynos4412-fs4412.dtb \; bootm 0x41000000 - 0x42000000
+  ```
+
+- 通过nfs去挂载rootfs
+
+  - 需要一个根文件系统目录
+
+  - 配置nfs服务器
+
+    ```shell
+    sudo vim /etc/exports
+    /opt/4412/rootfs	*(subtree_check,rw,no_root_squash,async)
+    sudo services nfs-kernel-server restart
+    # test
+    sudo mount -t nfs localhost:/opt/4412/rootfs /mnt
+    ```
+
+  - 在开发中去指定内核要挂载/opt/4412/rootfs
+
+    ```shell
+    # dm9000 使用时钟时需添加clk_ignore_unused，忽略没有使用的时钟
+    set bootargs console=ttySAC2,115200 init=/linuxrc root=/dev/nfs rw nfsroot=192.168.7.21:/opt/4412/rootfs ip=192.168.7.22 clk_ignore_unused
+    save
+    ```
+
+    解释：bootargs 是uboot传递给内核的启动参数，是一个字符串
+
+    console=xxx: 内核启动时候的调试信息是从哪个设备输出的
+
+    init=xxx: linux的第一个用户进程是哪个
+
+    root=xxx: 告诉内核根文件系统在哪里
+
+    ​	root=/dev/nfs	表示根文件系统在网络远端
+
+    ​	nfsroot=ip:path	
+
+    ip=xxx: 告诉内核开机的时候内核的ip地址是多少（静态分配ip）
+
+- 驱动开发
+
+  - 配置架构和编译器
+
+    ```makefile
+    ARCH = arm
+    CROSS_COMPILE = /home/wuwt/software/gcc-linaro-4.9-2016.02-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
+    ```
+
+  - 选择一个soc,内核支持多个soc,所以必须挑选一个针对开发平台的代码
+
+    ```shell
+    make exynos_defconfig
+    // cp -raf arch/arm/configs/exynos_defconfig .config
+    ```
+
+  - make menuconfig 内核裁剪，图形配置界面
+
+    ```shell
+    System Type --->
+    	(2) S3C UART to use for low-level message
+    ```
+
+  - make uImage: 编译内核
+
+  - 编译设备树文件
+
+    ```shell
+    # 找一个最为接近的作为模板
+    cp arch/arm/boot/dts/exynos4412-origen.dts arch/arm/boot/dts/exynos4412-fs4412.dts
+    # 修改dts文件夹下的Makefile，添加在相应变量中
+    dtb-$(CONFIG_ARCH_EXYNOS) += exynos4210-origen.dtb \
+    	exynos4210-smdkv310.dtb \
+    	exynos4210-trats.dtb \
+    	exynos4210-universal_c210.dtb \
+    	exynos4412-odroidx.dtb \
+    	exynos4412-origen.dtb \
+    	exynos4412-fs4412.dtb \
+    	....
+    # 编译设备树文件
+    make dtbs
+    ```
+
+  - 使用uImage和dtb文件
+
+    ```shell
+    cp -raf arch/arm/boot/uImage /tftpboot
+    cp -raf arch/arm/boot/dts/exynos4412-fs4412.dtb /tftpboot
+    ```
+
+    
+
