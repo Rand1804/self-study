@@ -1719,6 +1719,95 @@ static void __exit chardev_exit(void) {
    
    - 实现file_operation
 
+
+
+### 中断申请
+
+- 获取中断号
+
+  - 宏定义
+    - `IRQ_EINT(no)`
+  - 设备树文件
+    - `arch/arm/boot/dts/exynos4412-fs4412.dts`
+
+- 硬件连接：
+
+- 设备树文件：`arch/arm/boot/dts/exynos4x12-pinctrl.dtsi`
+
+  - `Documentation/devicetree/bindings/pinctrl/samsung-pinctrl.txt`管脚说明文档
+
+    ![image-20230907070847677](assets/image-20230907070847677.png)
+
+  - ```dtsi
+    		gpx1: gpx1 {
+      			gpio-controller;
+      			#gpio-cells = <2>;	
+      
+      			interrupt-controller;  // 这是一个中断控制器
+      			interrupt-parent = <&gic>;  //继承于gic
+      			interrupts = <0 24 0>, <0 25 0>, <0 26 0>, <0 27 0>,
+      				     <0 28 0>, <0 29 0>, <0 30 0>, <0 31 0>;
+      			#interrupt-cells = <2>; // 子节点中断号描述的宽度
+      		};
+    ```
+
+  - 该内容仅描述SoC，在编程过程中，需要定义自己的节点的具体用法
+  
+  - ```dts
+     	key_int_node {
+     		compatible = "test_key";
+     		interrupt-parent = <&gpx1>;
+     		interrupts = <2 2>;
+     
+     	};
+     ```
+
+### 阻塞
+
+驱动中实现阻塞：
+
+- 当当前进程加入到等待队列中
+  - `add_wait_queue(wait_queue_head_t *q, wait_queue_t *wait);`
+
+- 将当前进程状态设置成`TASK_INTERRUPTIBLE`
+  - `set_current_state(TASK_INTERRUPTIBLE)`
+- 让出调度（阻塞）
+  - `schedule(void)`
+
+更加智能的接口：
+
+​	`wait_event_interruptible(wq, condition)`
+
+代码实现：
+
+```c
+#include <linux/wait.h>
+
+wait_queue_head_t my_wait_queue;
+bool data_ready = false;
+
+// ... Somewhere during initialization
+init_waitqueue_head(&my_wait_queue);
+
+// ... In a reading function or similar:
+int result = wait_event_interruptible(my_wait_queue, data_ready);
+if (result) {
+    // Sleep was interrupted by a signal.
+    return result;
+}
+
+// Continue processing now that data_ready is true.
+
+data_ready = true;
+wake_up_interruptible(&my_wait_queue);
+```
+
+
+
+
+
+
+
 # 附录
 
 ## tools used in linux kernel development
@@ -1776,6 +1865,7 @@ This is by no means an exhaustive list, but these are some of the tools that are
 - 驱动信息：`/proc/devices`
 - cpu信息：`/proc/cpuinfo`
 - 中断信息：`/proc/interrupts`
+- 设备树文件：`/proc/device-tree/key_init_node`
 
 ## 开发环境配置
 
