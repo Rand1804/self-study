@@ -130,5 +130,17 @@
     "directory": "/home/wuwt/code/linux-3.14",
     "file": "/home/wuwt/code/self-study/Linux/linux_kernel/kernel_driver/arm32_linux3.14/key_drv/key_drv.mod.c",
     "output": "/home/wuwt/code/self-study/Linux/linux_kernel/kernel_driver/arm32_linux3.14/key_drv/key_drv.mod.o"
+  },
+  {
+    "arguments": [
+      "/home/wuwt/software/gcc-linaro-4.9-2016.02-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc",
+      "-c",
+      "-o",
+      "key_test",
+      "key_test.c"
+    ],
+    "directory": "/home/wuwt/code/self-study/Linux/linux_kernel/kernel_driver/arm32_linux3.14/key_drv",
+    "file": "/home/wuwt/code/self-study/Linux/linux_kernel/kernel_driver/arm32_linux3.14/key_drv/key_test.c",
+    "output": "/home/wuwt/code/self-study/Linux/linux_kernel/kernel_driver/arm32_linux3.14/key_drv/key_test"
   }
 ]
