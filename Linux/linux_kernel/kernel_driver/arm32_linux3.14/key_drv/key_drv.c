@@ -12,6 +12,7 @@
 #include <linux/atomic.h>
 #include <linux/io.h>
 #include <linux/input.h>
+#include <linux/poll.h>
 
 
 #define CHRDEV_NAME "key_drv"
@@ -58,10 +59,22 @@ ssize_t key_drv_read(struct file *filp, char __user *buf, size_t count, loff_t *
     return sizeof(key_dev->ev);
 }
 
+unsigned int key_drv_poll(struct file *flip, struct poll_table_struct *pts) {
+    unsigned int mask = 0;
+
+    poll_wait(flip, &key_dev->r_wait, pts);
+    if (atomic_read(&key_dev->ev_press)) {
+        mask |= POLLIN | POLLRDNORM;
+    }
+
+    return mask;
+}
+
 
 const struct file_operations key_fops = {
     .open = key_drv_open,
     .read = key_drv_read,
+    .poll = key_drv_poll,
 };
 
 

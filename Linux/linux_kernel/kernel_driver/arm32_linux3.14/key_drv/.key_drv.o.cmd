@@ -696,6 +696,10 @@ deps_/home/wuwt/code/self-study/Linux/linux_kernel/kernel_driver/arm32_linux3.14
     $(wildcard include/config/xen/pvh.h) \
   include/linux/input.h \
   include/uapi/linux/input.h \
+  include/linux/poll.h \
+  include/uapi/linux/poll.h \
+  arch/arm/include/generated/asm/poll.h \
+  /home/wuwt/code/linux-3.14/include/uapi/asm-generic/poll.h \
 
 /home/wuwt/code/self-study/Linux/linux_kernel/kernel_driver/arm32_linux3.14/key_drv/key_drv.o: $(deps_/home/wuwt/code/self-study/Linux/linux_kernel/kernel_driver/arm32_linux3.14/key_drv/key_drv.o)
 
