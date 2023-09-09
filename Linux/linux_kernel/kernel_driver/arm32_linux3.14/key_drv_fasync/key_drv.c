@@ -35,7 +35,8 @@ struct key_desc {
     wait_queue_head_t r_wait;
     atomic_t ev_press;
     struct key_event ev;
-    struct work_struct workqueue;
+    struct fasync_struct *async_queue;
+    struct tasklet_struct tasklet;
 };
 struct key_desc *key_dev;
 
@@ -72,15 +73,21 @@ unsigned int key_drv_poll(struct file *flip, struct poll_table_struct *pts) {
 }
 
 
+int key_drv_fasync (int fd, struct file *filp, int on) {
+    return fasync_helper(fd, filp, on, &key_dev->async_queue);
+}
+
 const struct file_operations key_fops = {
     .open = key_drv_open,
     .read = key_drv_read,
     .poll = key_drv_poll,
+    .fasync = key_drv_fasync,
 };
 
-void work_irq_half(struct work_struct *work) {
+void key_tasklet_half_irq(unsigned long data) {
     atomic_set(&key_dev->ev_press, 1);
     wake_up_interruptible(&key_dev->r_wait);
+    kill_fasync(&key_dev->async_queue, SIGIO, POLL_IN);
 }
 
 irqreturn_t key_irq_handler(int irqno, void *dev_id) {
@@ -99,7 +106,8 @@ irqreturn_t key_irq_handler(int irqno, void *dev_id) {
         key_dev->ev.value = 0;
     }
 
-    schedule_work(&key_dev->workqueue);
+    tasklet_schedule(&key_dev->tasklet);
+
     return IRQ_HANDLED;
 }
 
@@ -164,7 +172,7 @@ static int __init key_drv_init(void) {
 
     // implement block read
     init_waitqueue_head(&key_dev->r_wait);
-    INIT_WORK(&key_dev->workqueue, work_irq_half);
+    tasklet_init(&key_dev->tasklet, key_tasklet_half_irq, 0);
 
     return 0;
 
@@ -188,8 +196,8 @@ err_register_chrdev:
 }
 
 static void __exit key_drv_exit(void) {
-    flush_scheduled_work();
-
+    tasklet_kill(&key_dev->tasklet);
+    
     iounmap(key_dev->reg_base);
     free_irq(key_dev->irqno, NULL);
     device_destroy(key_dev->cls, MKDEV(key_dev->dev_major, 0));
