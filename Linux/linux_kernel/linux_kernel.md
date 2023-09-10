@@ -1802,7 +1802,9 @@ data_ready = true;
 wake_up_interruptible(&my_wait_queue);
 ```
 
-### 平台总线
+# 总线模型编程
+
+## bus对象
 
 ![image-20230907130024023](assets/image-20230907130024023.png)
 
@@ -1890,7 +1892,372 @@ extern void bus_unregister(struct bus_type *bus);
 extern int __must_check bus_rescan_devices(struct bus_type *bus);
 ```
 
+## device对象
 
+设备对象，描述设备信息，包括地址，中断号，甚至其他自定义的数据
+
+```c
+/**
+ * struct device - The basic device structure
+ * @parent:	The device's "parent" device, the device to which it is attached.
+ * 		In most cases, a parent device is some sort of bus or host
+ * 		controller. If parent is NULL, the device, is a top-level device,
+ * 		which is not usually what you want.
+ * @p:		Holds the private data of the driver core portions of the device.
+ * 		See the comment of the struct device_private for detail.
+ * @kobj:	A top-level, abstract class from which other classes are derived.
+ * @init_name:	Initial name of the device.
+ * @type:	The type of device.
+ * 		This identifies the device type and carries type-specific
+ * 		information.
+ * @mutex:	Mutex to synchronize calls to its driver.
+ * @bus:	Type of bus device is on.
+ * @driver:	Which driver has allocated this
+ * @platform_data: Platform data specific to the device.
+ * 		Example: For devices on custom boards, as typical of embedded
+ * 		and SOC based hardware, Linux often uses platform_data to point
+ * 		to board-specific structures describing devices and how they
+ * 		are wired.  That can include what ports are available, chip
+ * 		variants, which GPIO pins act in what additional roles, and so
+ * 		on.  This shrinks the "Board Support Packages" (BSPs) and
+ * 		minimizes board-specific #ifdefs in drivers.
+ * @power:	For device power management.
+ * 		See Documentation/power/devices.txt for details.
+ * @pm_domain:	Provide callbacks that are executed during system suspend,
+ * 		hibernation, system resume and during runtime PM transitions
+ * 		along with subsystem-level and driver-level callbacks.
+ * @pins:	For device pin management.
+ *		See Documentation/pinctrl.txt for details.
+ * @numa_node:	NUMA node this device is close to.
+ * @dma_mask:	Dma mask (if dma'ble device).
+ * @coherent_dma_mask: Like dma_mask, but for alloc_coherent mapping as not all
+ * 		hardware supports 64-bit addresses for consistent allocations
+ * 		such descriptors.
+ * @dma_parms:	A low level driver may set these to teach IOMMU code about
+ * 		segment limitations.
+ * @dma_pools:	Dma pools (if dma'ble device).
+ * @dma_mem:	Internal for coherent mem override.
+ * @cma_area:	Contiguous memory area for dma allocations
+ * @archdata:	For arch-specific additions.
+ * @of_node:	Associated device tree node.
+ * @acpi_node:	Associated ACPI device node.
+ * @devt:	For creating the sysfs "dev".
+ * @id:		device instance
+ * @devres_lock: Spinlock to protect the resource of the device.
+ * @devres_head: The resources list of the device.
+ * @knode_class: The node used to add the device to the class list.
+ * @class:	The class of the device.
+ * @groups:	Optional attribute groups.
+ * @release:	Callback to free the device after all references have
+ * 		gone away. This should be set by the allocator of the
+ * 		device (i.e. the bus driver that discovered the device).
+ * @iommu_group: IOMMU group the device belongs to.
+ *
+ * @offline_disabled: If set, the device is permanently online.
+ * @offline:	Set after successful invocation of bus type's .offline().
+ *
+ * At the lowest level, every device in a Linux system is represented by an
+ * instance of struct device. The device structure contains the information
+ * that the device model core needs to model the system. Most subsystems,
+ * however, track additional information about the devices they host. As a
+ * result, it is rare for devices to be represented by bare device structures;
+ * instead, that structure, like kobject structures, is usually embedded within
+ * a higher-level representation of the device.
+ */
+struct device {
+	struct device		*parent;
+
+	struct device_private	*p;
+
+	struct kobject kobj;
+	const char		*init_name; /* initial name of the device */
+	const struct device_type *type;
+
+	struct mutex		mutex;	/* mutex to synchronize calls to
+					 * its driver.
+					 */
+
+	struct bus_type	*bus;		/* type of bus device is on */
+	struct device_driver *driver;	/* which driver has allocated this
+					   device */
+	void		*platform_data;	/* Platform specific data, device
+					   core doesn't touch it */
+	struct dev_pm_info	power;
+	struct dev_pm_domain	*pm_domain;
+
+#ifdef CONFIG_PINCTRL
+	struct dev_pin_info	*pins;
+#endif
+
+#ifdef CONFIG_NUMA
+	int		numa_node;	/* NUMA node this device is close to */
+#endif
+	u64		*dma_mask;	/* dma mask (if dma'able device) */
+	u64		coherent_dma_mask;/* Like dma_mask, but for
+					     alloc_coherent mappings as
+					     not all hardware supports
+					     64 bit addresses for consistent
+					     allocations such descriptors. */
+
+	struct device_dma_parameters *dma_parms;
+
+	struct list_head	dma_pools;	/* dma pools (if dma'ble) */
+
+	struct dma_coherent_mem	*dma_mem; /* internal for coherent mem
+					     override */
+#ifdef CONFIG_DMA_CMA
+	struct cma *cma_area;		/* contiguous memory area for dma
+					   allocations */
+#endif
+	/* arch specific additions */
+	struct dev_archdata	archdata;
+
+	struct device_node	*of_node; /* associated device tree node */
+	struct acpi_dev_node	acpi_node; /* associated ACPI device node */
+
+	dev_t			devt;	/* dev_t, creates the sysfs "dev" */
+	u32			id;	/* device instance */
+
+	spinlock_t		devres_lock;
+	struct list_head	devres_head;
+
+	struct klist_node	knode_class;
+	struct class		*class;
+	const struct attribute_group **groups;	/* optional groups */
+
+	void	(*release)(struct device *dev);
+	struct iommu_group	*iommu_group;
+
+	bool			offline_disabled:1;
+	bool			offline:1;
+};
+
+static inline struct device *kobj_to_dev(struct kobject *kobj)
+{
+	return container_of(kobj, struct device, kobj);
+}
+```
+
+**常用方法**：
+
+```c
+int device_register(struct device *dev)
+{
+	device_initialize(dev);
+	return device_add(dev);
+}
+void device_unregister(struct device *dev)
+{
+	pr_debug("device: '%s': %s\n", dev_name(dev), __func__);
+	device_del(dev);
+	put_device(dev);
+}
+```
+
+## driver对象
+
+```c
+/**
+ * struct device_driver - The basic device driver structure
+ * @name:	Name of the device driver.
+ * @bus:	The bus which the device of this driver belongs to.
+ * @owner:	The module owner.
+ * @mod_name:	Used for built-in modules.
+ * @suppress_bind_attrs: Disables bind/unbind via sysfs.
+ * @of_match_table: The open firmware table.
+ * @acpi_match_table: The ACPI match table.
+ * @probe:	Called to query the existence of a specific device,
+ *		whether this driver can work with it, and bind the driver
+ *		to a specific device.
+ * @remove:	Called when the device is removed from the system to
+ *		unbind a device from this driver.
+ * @shutdown:	Called at shut-down time to quiesce the device.
+ * @suspend:	Called to put the device to sleep mode. Usually to a
+ *		low power state.
+ * @resume:	Called to bring a device from sleep mode.
+ * @groups:	Default attributes that get created by the driver core
+ *		automatically.
+ * @pm:		Power management operations of the device which matched
+ *		this driver.
+ * @p:		Driver core's private data, no one other than the driver
+ *		core can touch this.
+ *
+ * The device driver-model tracks all of the drivers known to the system.
+ * The main reason for this tracking is to enable the driver core to match
+ * up drivers with new devices. Once drivers are known objects within the
+ * system, however, a number of other things become possible. Device drivers
+ * can export information and configuration variables that are independent
+ * of any specific device.
+ */
+struct device_driver {
+	const char		*name;
+	struct bus_type		*bus;
+
+	struct module		*owner;
+	const char		*mod_name;	/* used for built-in modules */
+
+	bool suppress_bind_attrs;	/* disables bind/unbind via sysfs */
+
+	const struct of_device_id	*of_match_table;
+	const struct acpi_device_id	*acpi_match_table;
+
+	int (*probe) (struct device *dev);
+	int (*remove) (struct device *dev);
+	void (*shutdown) (struct device *dev);
+	int (*suspend) (struct device *dev, pm_message_t state);
+	int (*resume) (struct device *dev);
+	const struct attribute_group **groups;
+
+	const struct dev_pm_ops *pm;
+
+	struct driver_private *p;
+};
+
+
+extern int __must_check driver_register(struct device_driver *drv);
+extern void driver_unregister(struct device_driver *drv);
+
+extern struct device_driver *driver_find(const char *name,
+					 struct bus_type *bus);
+extern int driver_probe_done(void);
+extern void wait_for_device_probe(void);
+```
+
+**常用函数**：
+
+```c
+/**
+ * driver_register - register driver with bus
+ * @drv: driver to register
+ *
+ * We pass off most of the work to the bus_add_driver() call,
+ * since most of the things we have to do deal with the bus
+ * structures.
+ */
+int driver_register(struct device_driver *drv)
+{
+	int ret;
+	struct device_driver *other;
+
+	BUG_ON(!drv->bus->p);
+
+	if ((drv->bus->probe && drv->probe) ||
+	    (drv->bus->remove && drv->remove) ||
+	    (drv->bus->shutdown && drv->shutdown))
+		printk(KERN_WARNING "Driver '%s' needs updating - please use "
+			"bus_type methods\n", drv->name);
+
+	other = driver_find(drv->name, drv->bus);
+	if (other) {
+		printk(KERN_ERR "Error: Driver '%s' is already registered, "
+			"aborting...\n", drv->name);
+		return -EBUSY;
+	}
+
+	ret = bus_add_driver(drv);
+	if (ret)
+		return ret;
+	ret = driver_add_groups(drv, drv->groups);
+	if (ret) {
+		bus_remove_driver(drv);
+		return ret;
+	}
+	kobject_uevent(&drv->p->kobj, KOBJ_ADD);
+
+	return ret;
+}
+EXPORT_SYMBOL_GPL(driver_register);
+
+/**
+ * driver_unregister - remove driver from system.
+ * @drv: driver.
+ *
+ * Again, we pass off most of the work to the bus-level call.
+ */
+void driver_unregister(struct device_driver *drv)
+{
+	if (!drv || !drv->p) {
+		WARN(1, "Unexpected driver unregister!\n");
+		return;
+	}
+	driver_remove_groups(drv, drv->groups);
+	bus_remove_driver(drv);
+}
+EXPORT_SYMBOL_GPL(driver_unregister);
+```
+
+## 平台总线
+
+**比对函数：**
+
+```c
+/**
+ * platform_match - bind platform device to platform driver.
+ * @dev: device.
+ * @drv: driver.
+ *
+ * Platform device IDs are assumed to be encoded like this:
+ * "<name><instance>", where <name> is a short description of the type of
+ * device, like "pci" or "floppy", and <instance> is the enumerated
+ * instance of the device, like '0' or '42'.  Driver IDs are simply
+ * "<name>".  So, extract the <name> from the platform_device structure,
+ * and compare it against the name of the driver. Return whether they match
+ * or not.
+ */
+static int platform_match(struct device *dev, struct device_driver *drv)
+{
+	struct platform_device *pdev = to_platform_device(dev);
+	struct platform_driver *pdrv = to_platform_driver(drv);
+
+	/* Attempt an OF style match first */
+	if (of_driver_match_device(dev, drv))
+		return 1;
+
+	/* Then try ACPI style match */
+	if (acpi_driver_match_device(dev, drv))
+		return 1;
+
+	/* Then try to match against the id table */
+	if (pdrv->id_table)
+		return platform_match_id(pdrv->id_table, pdev) != NULL;
+
+	/* fall-back to driver name match */
+	return (strcmp(pdev->name, drv->name) == 0);
+}
+```
+
+**编写代码**：编写一个能在多个平台下使用的led驱动
+
+- 注册一个platform_device,定义资源：地址和中断
+
+  ```c
+  struct resource {
+      resource_size_t start;
+      resource_size_t end;
+      const char *name;
+      unsigned long flags;
+      struct resource *parent, *sibling, *child;
+  }
+  ```
+
+- 注册一个platform_driver,实现操作设备的代码
+
+  - 注册完毕，同时如果和pdev匹配成功，则内核会调用probe方法
+
+    - probe方法：对硬件进行操作
+
+      - 注册设备号，并且注册fops--为用户提供一个设备标识，同时提供文件操作io接口
+
+      - 创建设备节点
+
+      - 初始化硬件
+
+        ```c
+        ioremap(地址); //地址需要从pdev获取
+        readl/writel();
+        ```
+
+      - 实现各种io接口：xxx_open,xxx_read,...
 
 # 附录
 
