@@ -1,0 +1,49 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_EXCMD	mixed	/number, pattern, mixed, or combineV2/
+!_TAG_OUTPUT_FILESEP	slash	/slash or backslash/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PATTERN_LENGTH_LIMIT	96	/0 for no limit/
+!_TAG_PROC_CWD	/home/wuwt/code/self-study/Linux/linux_kernel/kernel_driver/arm32_linux3.14/plat_led_drv/	//
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	5.9.0	//
+APP_NAME	Makefile	/^APP_NAME = led_test$/;"	m
+ARCH	Makefile	/^ARCH = arm$/;"	m
+CC	Makefile	/^CC = $(CROSS_COMPILE)gcc$/;"	m
+CROSS_COMPILE	Makefile	/^CROSS_COMPILE = \/home\/wuwt\/software\/gcc-linaro-4.9-2016.02-x86_64_arm-linux-gnueabihf\/bin\//;"	m
+CUR_DIR	Makefile	/^CUR_DIR = $(shell pwd)$/;"	m
+GPF3_CON	plat_led_pdev.c	/^#define GPF3_CON /;"	d	file:
+GPF3_SIZE	plat_led_pdev.c	/^#define GPF3_SIZE /;"	d	file:
+GPIO_REG_BASE	plat_led_pdev.c	/^#define GPIO_REG_BASE /;"	d	file:
+GPX1_CON	plat_led_pdev.c	/^#define GPX1_CON /;"	d	file:
+GPX1_SIZE	plat_led_pdev.c	/^#define GPX1_SIZE /;"	d	file:
+KERNEL_DIR	Makefile	/^KERNEL_DIR = \/home\/wuwt\/code\/linux-3.14$/;"	m
+MODULE_NAME	Makefile	/^MODULE_NAME = led_drv$/;"	m
+ROOTFS_DIR	Makefile	/^ROOTFS_DIR = \/opt\/4412\/rootfs$/;"	m
+all	Makefile	/^all:$/;"	t
+clean	Makefile	/^clean:$/;"	t
+cls	plat_led_pdrv.c	/^	struct class *cls;$/;"	m	struct:led_dev	typeref:struct:class *	file:
+dev	plat_led_pdrv.c	/^	struct device *dev;$/;"	m	struct:led_dev	typeref:struct:device *	file:
+dev_major	plat_led_pdrv.c	/^	int dev_major;$/;"	m	struct:led_dev	typeref:typename:int	file:
+install	Makefile	/^install:$/;"	t
+led_dev	plat_led_pdrv.c	/^struct led_dev{$/;"	s	file:
+led_fops	plat_led_pdrv.c	/^const struct file_operations led_fops = {$/;"	v	typeref:typename:const struct file_operations
+led_id_table	plat_led_pdrv.c	/^const struct platform_device_id led_id_table[] = {$/;"	v	typeref:typename:const struct platform_device_id[]
+led_pdev	plat_led_pdev.c	/^struct platform_device led_pdev = {$/;"	v	typeref:struct:platform_device
+led_pdrv	plat_led_pdrv.c	/^struct platform_driver led_pdrv = {$/;"	v	typeref:struct:platform_driver
+led_pdrv_close	plat_led_pdrv.c	/^int led_pdrv_close(struct inode *inode, struct file *filp)$/;"	f	typeref:typename:int
+led_pdrv_open	plat_led_pdrv.c	/^int led_pdrv_open(struct inode *inode, struct file *filp)$/;"	f	typeref:typename:int
+led_pdrv_probe	plat_led_pdrv.c	/^int led_pdrv_probe(struct platform_device *pdev)$/;"	f	typeref:typename:int
+led_pdrv_remove	plat_led_pdrv.c	/^int led_pdrv_remove(struct platform_device *pdev)$/;"	f	typeref:typename:int
+led_pdrv_write	plat_led_pdrv.c	/^ssize_t led_pdrv_write (struct file *filp, const char __user *buf, size_t count, loff_t *fpos)$/;"	f	typeref:typename:ssize_t
+led_res	plat_led_pdev.c	/^struct resource led_res[] = {$/;"	v	typeref:struct:resource[]
+main	led_test.c	/^int main(int argc, char *argv[])$/;"	f	typeref:typename:int
+plat_led_dev_exit	plat_led_pdev.c	/^static void __exit plat_led_dev_exit(void)$/;"	f	typeref:typename:void __exit	file:
+plat_led_dev_init	plat_led_pdev.c	/^static int __init plat_led_dev_init(void)$/;"	f	typeref:typename:int __init	file:
+plat_led_pdrv_exit	plat_led_pdrv.c	/^static void __exit plat_led_pdrv_exit(void)$/;"	f	typeref:typename:void __exit	file:
+plat_led_pdrv_init	plat_led_pdrv.c	/^static int __init plat_led_pdrv_init(void)$/;"	f	typeref:typename:int __init	file:
+reg_base	plat_led_pdrv.c	/^	void *reg_base; \/\/表示物理地址映射之后的虚拟地址$/;"	m	struct:led_dev	typeref:typename:void *	file:
+res	plat_led_pdrv.c	/^	struct resource *res; \/\/获取到的内存资源$/;"	m	struct:led_dev	typeref:struct:resource *	file:
+samsung_led	plat_led_pdrv.c	/^struct led_dev *samsung_led;$/;"	v	typeref:struct:led_dev *
