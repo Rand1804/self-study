@@ -2259,6 +2259,36 @@ static int platform_match(struct device *dev, struct device_driver *drv)
 
       - 实现各种io接口：xxx_open,xxx_read,...
 
+# 输入子系统
+
+linux字符设备驱动总结：
+
+- 实现入口函数xxx_init()和卸载函数xxx_exit()
+- 申请设备号 register_chrdev_region (与内核相关)
+- 注册字符设备驱动 cdev_alloc cdev_init cdev_add (内核相关)
+- 利用udev/mdev机制创建设备文件（节点） class_create device_create (与内核相关)
+- 硬件初始化部分
+  - io资源映射 ioremap,内核提供gpio库函数(硬件相关)
+  - 注册中断(与硬件相关)
+  - 初始化等待队列(与内核相关)
+  - 初始化定时器(与内核相关)
+- 构建file opeartion结构(与内核相关)
+- 实现操作硬件方法 xxx_open, xxx_read...(与硬件相关)
+
+ ![image-20230912170739657](assets/image-20230912170739657.png)
+
+![image-20230912170806796](assets/image-20230912170806796.png)
+
+![image-20230912171010503](assets/image-20230912171010503.png)
+
+![image-20230912171112374](assets/image-20230912171112374.png)
+
+![image-20230912171159441](assets/image-20230912171159441.png)
+
+
+
+
+
 # 附录
 
 ## tools used in linux kernel development
