@@ -1,0 +1,34 @@
+{
+    "env": {
+        "LINUX_SRC": "/home/wuwt/code/linux-3.14"
+    },
+    "configurations": [
+        {
+            "name": "linux-kernel-arm32",
+            
+            "includePath": [
+                "${LINUX_SRC}/arch/arm/include",
+                "${LINUX_SRC}/arch/arm/include/generated",
+                "${LINUX_SRC}/include",
+                "${LINUX_SRC}/arch/arm/include/uapi",
+                "${LINUX_SRC}/arch/arm/include/generated/uapi",
+                "${LINUX_SRC}/include/uapi",
+                "${LINUX_SRC}/include/generated/uapi",
+                "${LINUX_SRC}/arch/arm/mach-exynos/include"
+            ],
+            "forcedInclude": [
+                "${LINUX_SRC}/include/generated/autoconf.h"
+            ],
+            "defines": [
+                "__KERNEL__",
+                "MODULE"
+            ],
+            "compileCommands": "${workspaceFolder}/compile_commands.json",
+            "compilerPath": "/home/wuwt/software/gcc-linaro-4.9-2016.02-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-arm"
+        }
+    ],
+    "version": 4
+}

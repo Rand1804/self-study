@@ -2285,9 +2285,40 @@ linux字符设备驱动总结：
 
 ![image-20230912171159441](assets/image-20230912171159441.png)
 
+# i2c子系统
+
+## 源码文件
+
+```c
 
 
+/**************************************************************/
+/* at24_drv.c----4 */
 
+/**************************************************************/
+/* i2c-core.c----2 */
+
+/**************************************************************/
+/* i2c-s3c2410.c----3 */
+
+/**************************************************************/
+/* mach-smdkv210.c----1 */
+static void __init smdkv210_machine_init(void) {
+    i2c_register_board_info(0, smdkv210_i2c_devs0,
+        ARRAY_SIZE(smdkv210_i2c_devs0));
+	i2c_register_board_info(1, smdkv210_i2c_devs1,
+			ARRAY_SIZE(smdkv210_i2c_devs1));
+	i2c_register_board_info(2, smdkv210_i2c_devs2,
+			ARRAY_SIZE(smdkv210_i2c_devs2));
+	platform_add_devices(smdkv210_devices, ARRAY_SIZE(smdkv210_devices));
+}
+```
+
+# Framebuffer子系统
+
+![image-20230914105916861](assets/image-20230914105916861.png)
+
+fb通用层：`drivers/video/fbmem.c`
 
 # 附录
 
