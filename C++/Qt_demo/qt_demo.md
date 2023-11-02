@@ -200,7 +200,7 @@ This class creates a dedicated worker thread to send messages at high frequency.
 
 This approach offloads the high-frequency work from the main thread, keeping your application responsive, and avoids the limitations of QTimer for such tasks. However, multithreading comes with its complexities and data safety considerations, particularly around shared data, so ensure you're managing resources safely. Also, remember to handle all possible exceptions, especially for operations that might fail like network operations.
 
-### I have a thread loop to query whether data is arrived. How can it to tell another thread that the data is arrived?
+### 3.I have a thread loop to query whether data is arrived. How can it to tell another thread that the data is arrived?
 
 In C++, there are several ways to communicate between threads. One of the common and efficient ways to notify another thread that some event has occurred (like data arrival) is by using condition variables along with mutexes. This method avoids busy waiting, which wastes CPU resources, especially in a loop querying for data.
 
