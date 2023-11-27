@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace = "com.bignerdranch.android.criminalintent"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.bignerdranch.android.criminalintent"
         minSdk = 24
-        targetSdk = 33
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 

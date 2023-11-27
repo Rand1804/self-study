@@ -140,3 +140,30 @@ The parameters are the original request code from **QuizActivity** and the resul
 The final step is to override **onActivityResult(int, int, Intent)** in **QuizActivity** to handle the result. However, because the contents of the result **Intent** are also an implementation detail of **CheatActivity**, add another method to help decode the extra into something **QuizActivity** can use.
 
 Let’s look at what is going on OS-wise as you move between activities. First, when you click on the GeoQuiz app in the launcher, the OS does not start the application; it starts an activity in the application. More specifically, it starts the application’s *launcher activity*. For GeoQuiz, **QuizActivity** is the launcher activity.
+
+### FragmentManager
+
+![image-20231115213331472](assets/image-20231115213331472.png)
+
+```java
+FragmentManager fm = getSupportFragmentManager();
+Fragment fragment = fm.findFragmentById(R.id.fragment_container);
+if (fragment == null) {
+    fragment = new CrimeFragment();
+    fm.beginTransaction()
+    	.add(R.id.fragment_container, fragment)
+    	.commit();
+}
+```
+
+The **FragmentManager** of an activity is responsible for calling the lifecycle methods of the fragments in its list. The **onAttach(Context)**, **onCreate(Bundle)**, and **onCreateView(…)** methods are called when you add the fragment to the **FragmentManager**.
+
+The **onActivityCreated(Bundle)** method is called after the hosting activity’s **onCreate(Bundle)** method has executed. You are adding the **CrimeFragment** in **CrimeActivity.onCreate(Bundle)**, so this method will be called after the fragment has been added.
+
+### RecyclerView
+
+![image-20231116021852370](assets/image-20231116021852370.png)
+
+![image-20231116022337366](assets/image-20231116022337366.png)
+
+After this process is complete, **RecyclerView** will place a list item on the screen. Note that **onCreateViewHolder(ViewGroup, int)** will happen a lot less often than **onBindViewHolder(ViewHolder, int)**. Once enough **ViewHolder**s have been created, **RecyclerView** stops calling **onCreateViewHolder(…)**. Instead, it saves time and memory by recycling old **ViewHolder**s.
