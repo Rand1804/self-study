@@ -1,0 +1,1 @@
+For example, safety-critical messages such as those related to braking or steering might have a higher frequency and lower delta time, indicating their high priority and the need for real-time updates. Conversely, less critical information such as ambient temperature might have a lower frequency and higher delta times.
