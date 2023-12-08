@@ -84,9 +84,8 @@ int main() {
 
     handle_primes(p, 2);
 
-    for (int i = 0; i < 34; i++) {
-        int temp = i + 2;
-        write1(p[1], (char*) &temp, 4);
+    for (int i = 2; i <= 35; i++) {
+        write1(p[1], (char*) &i, 4);
     }
     close(p[1]);
     
@@ -94,3 +93,61 @@ int main() {
     exit(0);
 
 }
+
+
+/**
+ * Answer of GPT-4
+*/
+
+/*
+
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+void process(int read_fd) {
+    int prime, num;
+
+    if (read(read_fd, &prime, sizeof(int)) > 0) {
+        printf("prime %d\n", prime);
+        int fd[2];
+        pipe(fd);
+
+        if (fork() == 0) {
+            close(fd[1]);
+            process(fd[0]);
+        } else {
+            close(fd[0]);
+            while (read(read_fd, &num, sizeof(int)) > 0) {
+                if (num % prime != 0) {
+                    write(fd[1], &num, sizeof(int));
+                }
+            }
+            close(fd[1]);
+            wait(NULL);
+        }
+    }
+    close(read_fd);
+}
+
+int main() {
+    int fd[2];
+    pipe(fd);
+
+    if (fork() == 0) {
+        close(fd[1]);
+        process(fd[0]);
+    } else {
+        close(fd[0]);
+        for (int i = 2; i <= 35; i++) {
+            write(fd[1], &i, sizeof(int));
+        }
+        close(fd[1]);
+        wait(NULL);
+    }
+
+    return 0;
+}
+
+
+*/
