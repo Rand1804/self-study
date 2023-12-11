@@ -44,39 +44,83 @@ void free_argv(char **argv) {
     free(argv);
 }
 
-int main(int argc, char *argv[]) {
-    char *p;
-    char buf[512];
-    char **new_argv;
+char fgetc(int fd) {
+    char c;
+
+    if (read(0, &c, 1) == 1) {
+        return c;
+    } else {
+        return 0;
+    }
+}
+
+
+int getline(char *buffer, int *buffer_sizep, int fd) {
+    if (buffer == 0 || buffer_sizep == 0) {
+        return -1;
+    }
+
+    uint i = 0;
+    char c;
+
+    while ((c=fgetc(fd)) != '\n' && c != 0) {
     
+        if (i+1 >= *buffer_sizep) {
+            *buffer_sizep *= 2;
+            char *new_buffer  = (char*)malloc(*buffer_sizep);
+            if (new_buffer == 0) {
+                return -1;
+            }
+            free(buffer);
+            buffer = new_buffer;
+        }
+
+        buffer[i++] = c;
+    }
+
+    if (i == 0 && c == 0) {
+        return 1;
+    }
+
+    buffer[i] = 0;
+    return 0;
+}
+
+void print_newargv(char **argv) {
+    if (argv == 0) {
+        panic("print_newargv");
+    }
+    for (int i = 0; argv[i]; i++) {
+        printf("argv%d: %s\n", i, argv[i]);
+    }
+}
+
+
+int main(int argc, char *argv[]) {
+    char **new_argv;
+    int buffer_size = 100;
+    char *buffer = (char*) malloc(buffer_size);
+    if (buffer == 0) {
+        return 1;
+    }
+
     if (argc < 2) {
         panic("Usage: xargs <exec> <args>");
     }
     
-    while (read(0, buf, 512) < 0) {
-        
-    }
-    for (p = arg; *p; p++) {
-        if (*p == '\n') {
-            *p = '\0';
-            new_argv = generate_argv(argc, argv, arg);
-            if (fork1() == 0) { // Child
-                exec(argv[1], new_argv);
-                exit(1);
-            }
-            wait(0);
-            free_argv(new_argv);
-            arg = p + 1;
+    while (getline(buffer, &buffer_size, 0) != 0) {
+        new_argv = generate_argv(argc, argv, buffer);
+        print_newargv(new_argv);
+        if (fork1() == 0) { // Child
+            exec(argv[1], new_argv);
+            exit(1);
         }
+        wait(0);
+        free_argv(new_argv);
     }
 
-    new_argv = generate_argv(argc, argv, arg);
-    if (fork1() == 0) { // Child
-        exec(argv[1], new_argv);
-        exit(1);
-    }
-    wait(0);
-    free_argv(new_argv);
+
+    free(buffer);
 
     exit(0);
 
