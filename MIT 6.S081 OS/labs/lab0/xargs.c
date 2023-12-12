@@ -108,9 +108,8 @@ int main(int argc, char *argv[]) {
         panic("Usage: xargs <exec> <args>");
     }
     
-    while (getline(buffer, &buffer_size, 0) != 0) {
+    while (getline(buffer, &buffer_size, 0) == 0) {
         new_argv = generate_argv(argc, argv, buffer);
-        print_newargv(new_argv);
         if (fork1() == 0) { // Child
             exec(argv[1], new_argv);
             exit(1);
