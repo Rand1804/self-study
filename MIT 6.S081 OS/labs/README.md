@@ -71,3 +71,63 @@ These commands form the foundation of navigating and utilizing GDB for debugging
 ## Kernel Page Table
 
 ![img](https://906337931-files.gitbook.io/~/files/v0/b/gitbook-legacy-files/o/assets%2F-MHZoT2b_bcLghjAOPsJ%2F-MK_UbCc81Y4Idzn55t8%2F-MKaY9xY8MaH5XTiwuBm%2Fimage.png?alt=media&token=3adbe628-da78-472f-8e7b-3d0b1d3177b5)
+
+```shell
+tui enable
+layout asm
+layout reg
+layout source # 仅展示C代码
+layout split # 同时展示C代码和汇编代码
+tui disable
+info frame
+backtrace
+```
+
+这里的意思是，一个Caller Saved寄存器可能被其他函数重写。假设我们在函数a中调用函数b，任何被函数a使用的并且是Caller Saved寄存器，调用函数b可能重写这些寄存器。任何一个Callee Saved寄存器，作为被调用方的函数要小心寄存器的值不会相应的变化。
+
+不同的函数有不同数量的本地变量，不同的寄存器，所以Stack Frame的大小是不一样的。但是有关Stack Frame有两件事情是确定的：
+
+- Return address总是会出现在Stack Frame的第一位
+- 指向前一个Stack Frame的指针也会出现在栈中的固定位置
+
+有关Stack Frame中有两个重要的寄存器，第一个是SP（Stack Pointer），它指向Stack的底部并代表了当前Stack Frame的位置。第二个是FP（Frame Pointer），它指向当前Stack Frame的顶部。因为Return address和指向前一个Stack Frame的的指针都在当前Stack Frame的固定位置，所以可以通过当前的FP寄存器寻址到这两个数据。
+
+riscv.h (kernel/riscv.h:1) contains definitions that xv6 uses. Here’s an outline of the most important registers:
+• **stvec**: The kernel writes the address of its trap handler here; the RISC-V jumps to the address in stvec to handle a trap.
+• **sepc**: When a trap occurs, RISC-V saves the program counter here (since the pc is then overwritten with the value in stvec). The sret (return from trap) instruction copies sepc to the pc. The kernel can write sepc to control where sret goes.
+• **scause**: RISC-V puts a number here that describes the reason for the trap.
+• **sscratch**: The kernel places a value here that comes in handy at the very start of a trap handler.
+• **sstatus**: The SIE bit in sstatus controls whether device interrupts are enabled. If the kernel clears SIE, the RISC-V will defer device interrupts until the kernel sets SIE. The SPP bit indicates whether a trap came from user mode or supervisor mode, and controls to what mode sret returns.
+
+Each CPU on a multi-core chip has its own set of these registers, and more than one CPU may
+be handling a trap at any given time.
+When it needs to force a trap, the RISC-V hardware does the following for all trap types (other
+than timer interrupts):
+
+1. If the trap is a device interrupt, and the sstatus SIE bit is clear, don’t do any of the
+  following.
+2. Disable interrupts by clearing the SIE bit in sstatus.
+3. **Copy the pc to sepc.**
+4. Save the current mode (user or supervisor) in the SPP bit in sstatus.
+5. Set scause to reflect the trap’s cause.
+6. **Set the mode to supervisor.**
+7. **Copy stvec to the pc.**
+8. Start executing at the new pc.
+
+Note that the CPU **doesn’t switch to the kernel page table**, doesn’t switch to a stack in the kernel, and **doesn’t save any registers other than the pc**. Kernel software must perform these tasks. One reason that the CPU does minimal work during a trap is to provide flexibility to software; for example, some operating systems omit a page table switch in some situations to increase trap
+performance.
+
+A major constraint on the design of xv6’s trap handling is the fact that the RISC-V hardware
+does not switch page tables when it forces a trap. This means that the trap handler address in
+stvec must have a valid mapping in the user page table, since that’s the page table in force when
+the trap handling code starts executing. Furthermore, xv6’s trap handling code needs to switch to
+the kernel page table; in order to be able to continue executing after that switch, the kernel page
+table must also have a mapping for the handler pointed to by stvec.
+
+也就是说，你可以在supervisor mode完成，但是不能在user mode完成的工作，或许并没有你想象的那么有特权。所以，我们接下来看看supervisor mode可以控制什么？
+
+其中的一件事情是，你现在可以读写控制寄存器了。比如说，当你在supervisor mode时，你可以：读写SATP寄存器，也就是page table的指针；STVEC，也就是处理trap的内核指令地址；SEPC，保存当发生trap时的程序计数器；SSCRATCH等等。在supervisor mode你可以读写这些寄存器，而用户代码不能做这样的操作。
+
+另一件事情supervisor mode可以做的是，它可以使用PTE_U标志位为0的PTE。当PTE_U标志位为1的时候，表明用户代码可以使用这个页表；如果这个标志位为0，则只有supervisor mode可以使用这个页表。我们接下来会看一下为什么这很重要。
+
+这两点就是supervisor mode可以做的事情，除此之外就不能再干别的事情了。
