@@ -105,7 +105,7 @@ When it needs to force a trap, the RISC-V hardware does the following for all tr
 than timer interrupts):
 
 1. If the trap is a device interrupt, and the sstatus SIE bit is clear, don’t do any of the
-  following.
+    following.
 2. Disable interrupts by clearing the SIE bit in sstatus.
 3. **Copy the pc to sepc.**
 4. Save the current mode (user or supervisor) in the SPP bit in sstatus.
@@ -114,8 +114,24 @@ than timer interrupts):
 7. **Copy stvec to the pc.**
 8. Start executing at the new pc.
 
-Note that the CPU **doesn’t switch to the kernel page table**, doesn’t switch to a stack in the kernel, and **doesn’t save any registers other than the pc**. Kernel software must perform these tasks. One reason that the CPU does minimal work during a trap is to provide flexibility to software; for example, some operating systems omit a page table switch in some situations to increase trap
-performance.
+Note that the CPU **doesn’t switch to the kernel page table**, doesn’t switch to a stack in the kernel, and **doesn’t save any registers other than the pc**. Kernel software must perform these tasks. One reason that the CPU does minimal work during a trap is to provide flexibility to software; for example, some operating systems omit a page table switch in some situations to increase trap performance.
+
+我们是通过ecall走到trampoline page的，而ecall实际上只会改变三件事情：
+
+第一，ecall将代码从user mode改到supervisor mode。
+
+第二，ecall将程序计数器的值保存在了SEPC寄存器。我们可以通过打印程序计数器看到这里的效果
+
+第三，ecall会跳转到STVEC寄存器指向的指令。
+
+所以现在，ecall帮我们做了一点点工作，但是实际上我们离执行内核中的C代码还差的很远。接下来：
+
+- 我们需要保存32个用户寄存器的内容，这样当我们想要恢复用户代码执行时，我们才能恢复这些寄存器的内容。
+- 因为现在我们还在user page table，我们需要切换到kernel page table。
+- 我们需要创建或者找到一个kernel stack，并将Stack Pointer寄存器的内容指向那个kernel stack。这样才能给C代码提供栈。
+- 我们还需要跳转到内核中C代码的某些合理的位置。
+
+ecall并不会为我们做这里的任何一件事。
 
 A major constraint on the design of xv6’s trap handling is the fact that the RISC-V hardware
 does not switch page tables when it forces a trap. This means that the trap handler address in
@@ -131,3 +147,70 @@ table must also have a mapping for the handler pointed to by stvec.
 另一件事情supervisor mode可以做的是，它可以使用PTE_U标志位为0的PTE。当PTE_U标志位为1的时候，表明用户代码可以使用这个页表；如果这个标志位为0，则只有supervisor mode可以使用这个页表。我们接下来会看一下为什么这很重要。
 
 这两点就是supervisor mode可以做的事情，除此之外就不能再干别的事情了。
+
+### X
+
+1. **Use the `x` Command**: The basic syntax of the `x` command is:
+
+   ```
+   x/nfu addr
+   ```
+   Where:
+   - `n` is the number of elements to display.
+   - `f` is the format in which to display each element (`x` for hexadecimal, `d` for decimal, `u` for unsigned, `t` for binary, `o` for octal, `a` for address, `c` for char, `f` for float, `s` for string, `i` for instruction, etc.).
+   - `u` is the unit size of each element (`b` for byte, `h` for halfword, `w` for word, `g` for giant/8 bytes).
+   - `addr` is the starting address from where you want to examine the memory.
+
+
+### Print Basic Syntax:
+
+
+
+The basic syntax of the `print` command is:
+
+```gdb
+print [/format] expression
+```
+
+Where:
+- `expression` is the expression you want to evaluate and print. This can be a variable, a function call, a mathematical expression, or any valid combination of these.
+- `/format` is an optional format specifier that dictates how the value should be displayed. Common format specifiers include:
+  - `x` - hexadecimal
+  - `d` - decimal
+  - `u` - unsigned decimal
+  - `o` - octal
+  - `t` - binary
+  - `a` - address
+  - `c` - character
+  - `f` - floating point
+  - `s` - string
+
+
+
+In GDB (GNU Debugger), the symbols `$` and `*` have specific meanings and are used in various contexts. Understanding their usage can enhance your debugging process significantly. Here's an overview of how these symbols are used:
+
+### 1. `$` Symbol:
+The `$` symbol in GDB is primarily used in the context of variables and registers:
+
+- **Registers**: When prefixed with a `$`, it refers to CPU registers. For example, `$eax`, `$rsp`, `$rip` on x86 architectures refer to specific CPU registers. You can use the `print` command to view their contents, like `print $eax`.
+
+- **Convenience Variables**: GDB allows you to store values in convenience variables, which are named with the `$` symbol followed by a name, like `$myVar`. You can assign values to these variables for use later in the debugging session. For instance, `set $myVar = 5` assigns 5 to `$myVar`, and you can then use `print $myVar` to view its value.
+
+- **History of Printed Values**: GDB automatically stores the values of the most recently printed expressions in convenience variables named `$1`, `$2`, `$3`, etc. `$1` refers to the last printed value, `$2` to the second-to-last, and so on. 
+
+### 2. `*` Symbol:
+The `*` symbol in GDB is used for dereferencing pointers and for examining memory contents:
+
+- **Dereferencing Pointers**: In C and C++, `*` is used to dereference a pointer. In GDB, this works the same way. If you have a pointer `p`, you can view the value it points to by using `print *p`.
+
+- **Examining Memory**: When combined with the `x` command, `*` is used to interpret a memory address and examine its contents. For instance, `x/4wx *addr` interprets `addr` as an address and displays 4 words of memory in hexadecimal format starting from that address.
+
+- **Expressions**: It can be used in expressions for multiplication or as a pointer dereference symbol, depending on the context.
+
+Understanding the distinction between `$` for referencing variables and registers, and `*` for dereferencing pointers or memory addresses, is crucial for effective debugging in GDB. These symbols allow you to inspect and manipulate the state of the program you are debugging in a powerful way.
+
+![image-20231220012619183](assets/image-20231220012619183.png)
+
+接下来我们要设置SSTATUS寄存器，这是一个控制寄存器。这个寄存器的SPP bit位控制了sret指令的行为，该bit为0表示下次执行sret的时候，我们想要返回user mode而不是supervisor mode。这个寄存器的SPIE bit位控制了，在执行完sret之后，是否打开中断。因为我们在返回到用户空间之后，我们的确希望打开中断，所以这里将SPIE bit位设置为1。修改完这些bit位之后，我们会把新的值写回到SSTATUS寄存器。
+
+![img](https://906337931-files.gitbook.io/~/files/v0/b/gitbook-legacy-files/o/assets%2F-MHZoT2b_bcLghjAOPsJ%2F-MMD_TK8Ar4GqWE6xfWV%2F-MMNmVfRDZSAOKze10lZ%2Fimage.png?alt=media&token=4bbfdfa6-1491-4ab8-8248-03bd0e36a8e9)

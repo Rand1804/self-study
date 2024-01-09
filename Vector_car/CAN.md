@@ -32,6 +32,8 @@ A **Controller Area Network** (**CAN bus**)
 
 ![image-20231016041754270](assets/image-20231016041754270.png)
 
+
+
 ## CAN总线构成
 
 ### SOF
@@ -53,6 +55,70 @@ A **Controller Area Network** (**CAN bus**)
 ![image-20231016042542592](assets/image-20231016042542592.png)
 
 IDE也是一个格式指示位，*r*位是保留位，没有做特殊定义，一般发一个显性位0
+
+
+
+### Standard Frame
+
+Here is an explanation of the CAN standard frame bit-by-bit:
+
+- Start of Frame (SOF): 1 bit - Indicates the start of a new message
+
+- Identifier: 11 bits - Contains the message ID which identifies the type of message
+
+- IDE: 1 bit - Identifier Extension bit - Dominant for standard frame format, Recessive for extended frame format
+
+- RTR: 1 bit - Remote Transmission Request - Dominant for a data frame, Recessive for a remote request frame 
+
+- Reserved bit: 1 bit - Always dominant (0)
+
+- DLC: 4 bits - Data Length Code - Indicates the number of bytes of data (0-8 bytes)
+
+- Data field: 0-64 bits - Contains the message data, length determined by DLC
+
+- CRC: 15 bits - Cyclic Redundancy Check - Used for error detection 
+
+- CRC Delimiter: 1 bit - Recessive bit that separates CRC from ACK
+
+- ACK: 1 bit - Acknowledgement - Transmitted as recessive, overwritten as dominant by any receiver
+
+- ACK Delimiter: 1 bit - Recessive bit that follows ACK
+
+- End of Frame: 7 bits - Signals the end of message with recessive bits
+
+So in summary, it contains fields for message ID, data length, data, error checking, acknowledgement, and start/end of frame indicators. The fixed layout allows different nodes to correctly interpret messages.
+
+### Extended Frame
+
+Here is an explanation of the CAN extended frame format bit-by-bit:
+
+- Start of Frame (SOF): 1 bit - Indicates start of message
+
+- Identifier: 29 bits - Contains the extended message ID 
+
+- SRR: 1 bit - Substitute Remote Request - Dominant for data frame, Recessive for remote request frame
+
+- IDE: 1 bit - Identifier Extension bit - Recessive for extended frame format
+
+- RTR: 1 bit - Remote Transmission Request - Dominant for data frame, Recessive for remote request frame
+
+- Reserved bits: 2 bits - Always dominant (0) 
+
+- DLC: 4 bits - Data Length Code - Indicates number of bytes of data (0-8 bytes)
+
+- Data field: 0-64 bits - Contains the message data 
+
+- CRC: 15 bits - Cyclic Redundancy Check for error detection
+
+- CRC Delimiter: 1 bit - Recessive bit separating CRC from ACK
+
+- ACK: 1 bit - Acknowledgement from receivers 
+
+- ACK Delimiter: 1 bit - Recessive bit following ACK
+
+- End of Frame: 7 bits - Signals end of message
+
+The key differences from standard format are the 29-bit identifier and 2 reserved bits. This allows for a much larger number of message IDs. The rest of the frame structure remains the same.
 
 ### DLC
 
@@ -145,6 +211,87 @@ CAN网络中，节点的状态必然处于这3种状态之一。
 除了发送的错误帧有区别，主动错误就是正常工作状态，被动错误状态的节点不能在3个bit1的帧间隔之后立马发送数据，**必须额外等待8个bit**
 
 当一个节点进入被动状态时，或多或少说明该节点存在一些问题
+
+
+
+## CAN FD
+
+可变数据速率
+
+数据段最高可达8M/s, 最多64byte数据
+
+### 硬件改动
+
+物理电平与数字信号的转换与传统高速CAN是一致的
+
+1. 如果原先CAN收发器就支持较高速率则不用更换
+2. CAN FD在协议层面与传统CAN有所变动，需要使用支持FD报文解析的新的CAN控制器
+3. 取消了远程帧格式
+
+### 协议变动
+
+![image-20231227225617107](assets/image-20231227225617107.png)
+
+![image-20231227225900044](assets/image-20231227225900044.png)
+
+![image-20231227225928773](assets/image-20231227225928773.png)
+
+#### 变动总结
+
+- **CAN标准帧与扩展帧区别**：
+  - 由IDE位(Identifier Extension bit)（第13bit）区分标准帧和远程帧，扩展id(18bit)插在IDE位后
+  - 保留位由1位变为2位
+- **CAN标准帧与CAN FD标准帧区别**：
+  - RTR位变为RRS位（保留位，默认值0）
+  - 将保留位作为FDF位用以区别传统CAN与CAN FD报文，0表示传统报文，1表示CAN FD报文
+  - 增加一位保留位，BRS和ESI位
+- **CAN扩展帧与CAN FD扩展帧区别**：
+  - 一位保留位替换位FDF位
+  - 在另一位保留位后增加BRS和ESI位
+
+### BRS
+
+![image-20231228222424015](assets/image-20231228222424015.png)
+
+**BRS**：传输速率切换位，为0时，不进行速率切换，为1时数据段比特率会切换到第二种较高的值
+
+### ESI
+
+![image-20231228222831885](assets/image-20231228222831885.png)
+
+**ESI**: 错误状态指示位，为0时为主动错误状态，为1时为被动错误状态。（在传统CAN报文中，发送节点的错误状态只有节点本身知道）
+
+### DLC
+
+![image-20231228223220069](assets/image-20231228223220069.png)
+
+### CRC优化（较大改变）
+
+![image-20231228223314924](assets/image-20231228223314924.png)
+
+### 位填充规则改变
+
+![image-20231228223543828](assets/image-20231228223543828.png)
+
+在CRC场之前，和传统CAN报文一样，都遵循每5个相同位填充一个相反位。
+
+Stuff Bit Counter: 填充位计数，在CRC场前面增加了4个位，对前序的填充位进行计数校验。将统计的数目进行mod8运算，结果以格林编码的形式存放在stuff bit counter高3位中，最后一位偶校验位用来校验前三位
+
+而CRC场的位填充则改为固定位置位填充。首先在stuff counter第一位之前增加一个填充位，取值与前一位相反。之后每隔4个位增加一个填充位，每个填充位都取前一个的相反值
+
+![image-20231228224817405](assets/image-20231228224817405.png)
+
+## J1939
+
+基于CAN的高层协议，使用的是CAN扩展帧格式
+
+![image-20231228230434160](assets/image-20231228230434160.png)
+
+![image-20231228230937638](assets/image-20231228230937638.png)
+
+![image-20231228231308184](assets/image-20231228231308184.png)
+
+![image-20231228231717815](assets/image-20231228231717815.png)
 
 # LIN总线
 
