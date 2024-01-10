@@ -94,6 +94,8 @@
 
 ## LED实验
 
+### 电路设计
+
 ![image-20240108031734243](assets/image-20240108031734243.png)
 
 ![image-20240108212632101](assets/image-20240108212632101.png)
@@ -117,3 +119,170 @@
 ### GPIO读写
 
 ![image-20240109053647528](assets/image-20240109053647528.png)
+
+![image-20240109054848552](assets/image-20240109054848552.png)
+
+## 按钮实验
+
+### 电路设计
+
+![image-20240109055021594](assets/image-20240109055021594.png)
+
+![image-20240109055441483](assets/image-20240109055441483.png)
+
+![image-20240109060007901](assets/image-20240109060007901.png)
+
+### 按键抖动
+
+![image-20240109214405416](assets/image-20240109214405416.png)
+
+![image-20240109214751592](assets/image-20240109214751592.png)
+
+### 按键驱动库
+
+![image-20240109220119026](assets/image-20240109220119026.png)
+
+### 句柄
+
+![image-20240109220519989](assets/image-20240109220519989.png)
+
+### 回调函数
+
+![image-20240109221546290](assets/image-20240109221546290.png)
+
+### 多按键编程
+
+![image-20240109223819707](assets/image-20240109223819707.png)
+
+依次轮询
+
+## AFIO
+
+![image-20240109224421862](assets/image-20240109224421862.png)
+
+### 复用功能重映射表
+
+![image-20240109225200289](assets/image-20240109225200289.png)
+
+![image-20240109225418440](assets/image-20240109225418440.png)
+
+![image-20240109230554654](assets/image-20240109230554654.png)
+
+**CH1N**: N表示negative,表示CH1的互补通道
+
+**ETR**：外部参考信号
+
+**BRKIN**：急停信号
+
+### AFIO驱动
+
+![image-20240109231927496](assets/image-20240109231927496.png)
+
+![image-20240109232600117](assets/image-20240109232600117.png)
+
+## 中断编程
+
+![image-20240110014448074](assets/image-20240110014448074.png)
+
+![image-20240110014622275](assets/image-20240110014622275.png)
+
+![image-20240110015044131](assets/image-20240110015044131.png)
+
+### 中断过程
+
+![image-20240110015144150](assets/image-20240110015144150.png)
+
+### 中断优先级
+
+![image-20240110015525834](assets/image-20240110015525834.png)
+
+![image-20240110023215622](assets/image-20240110023215622.png)
+
+![image-20240110023413656](assets/image-20240110023413656.png)
+
+### 中断的4种状态
+
+![image-20240110024020443](assets/image-20240110024020443.png)
+
+图4：A和B同时处于活动状态
+
+## NVIC
+
+![image-20240110024258276](assets/image-20240110024258276.png)
+
+### 中断协作模型
+
+![image-20240110024849918](assets/image-20240110024849918.png)
+
+> GPIO、AFIO是不能产生中断源的
+>
+> NVIC负责保持现场和恢复现场，以及中断优先级设置和仲裁
+
+### NVIC内部结构
+
+![image-20240110025523172](assets/image-20240110025523172.png)
+
+### 中断向量表
+
+![image-20240110030156814](assets/image-20240110030156814.png)
+
+![image-20240110030804280](assets/image-20240110030804280.png)
+
+![image-20240110030954395](assets/image-20240110030954395.png)
+
+### NVIC标准库接口
+
+![image-20240110031337035](assets/image-20240110031337035.png)
+
+![image-20240110031524200](assets/image-20240110031524200.png)
+
+![image-20240110031854964](assets/image-20240110031854964.png)
+
+### 具体程序
+
+![image-20240110032533234](assets/image-20240110032533234.png)
+
+```c
+int main(void) {
+    // 中断优先级分组2
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+    // 开启中断源
+    USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+    // 配置NVIC的USART1中断
+    NVIC_InitTypeDef NVICInitStruct;
+    NVICInitStruct.NVIC_IRQChannel = USART1_IRQn; // 中断源的名称
+    NVICInitStruct.NVIC_IRQChannelPreemptionPriority = 0; // 抢占优先级
+    NVICInitStruct.NVIC_IRQChannelSubPriority = 0; // 子优先级
+    NVICInitStruct.NVIC_IRQChannelCmd = ENABLE; // 使能中断
+    NVIC_Init(&NVICInitStruct);
+    
+    while(1);
+}
+
+// 使用同名函数对startup_stm32f10x_md.s中的同名弱函数进行覆盖
+void USART1_IRQHandler(void) {
+    // TODO
+}
+```
+
+![image-20240110052931712](assets/image-20240110052931712.png)
+
+> NVIC位于cortex-M3内核内部，芯片上电后，内核的时钟就会开启，且无法关闭
+
+![image-20240110054627559](assets/image-20240110054627559.png)
+
+## EXTI
+
+![image-20240110055554554](assets/image-20240110055554554.png)
+
+### 电路结构
+
+![image-20240110060158434](assets/image-20240110060158434.png)
+
+> 电路图中梯形表示复用器，3路中选择一路
+
+### 事件
+
+![image-20240110060827773](assets/image-20240110060827773.png)
+
+> 在现在的STM32编程中很少用到
