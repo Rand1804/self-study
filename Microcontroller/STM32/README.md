@@ -286,3 +286,569 @@ void USART1_IRQHandler(void) {
 ![image-20240110060827773](assets/image-20240110060827773.png)
 
 > 在现在的STM32编程中很少用到
+
+### EXTI通道
+
+![image-20240110213401416](assets/image-20240110213401416.png)
+
+![image-20240110213453310](assets/image-20240110213453310.png)
+
+> **引脚编号相同的引脚同时只能有一路作为EXTI的输入**
+
+![image-20240110214045124](assets/image-20240110214045124.png)
+
+### EXTI寄存器组
+
+![image-20240110214633808](assets/image-20240110214633808.png)
+
+### EXTI标准库
+
+![image-20240111013549390](assets/image-20240111013549390.png)
+
+![image-20240110215348513](assets/image-20240110215348513.png)
+
+> 虽然是片上外设，但是与芯片唤醒有关，所以时钟默认开启，且不可关闭
+
+### 中断实验
+
+![image-20240110224340404](assets/image-20240110224340404.png)
+
+![image-20240110230147745](assets/image-20240110230147745.png)
+
+![image-20240110231027217](assets/image-20240110231027217.png)
+
+![image-20240110231055056](assets/image-20240110231055056.png)
+
+![image-20240110231441623](assets/image-20240110231441623.png)
+
+![image-20240110232033177](assets/image-20240110232033177.png)
+
+![image-20240110232646231](assets/image-20240110232646231.png)
+
+![image-20240111012157076](assets/image-20240111012157076.png)
+
+![image-20240111013147259](assets/image-20240111013147259.png)
+
+```C
+int main(void) {
+    // 中断优先级分组
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+    
+    PAL_Init();
+    
+    // 1.初始化IO引脚
+    // 将PA0和PA1分别设置为输入上拉模式
+    // 开启GPIOA的时钟
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+    // PA0, PA1
+    GPIO_InitTypeDef GPIOInitStruct;
+    GPIOInitStruct.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;
+    GPIOInitStruct.GPIO_Mode = GPIO_Mode_IPU;
+    GPIO_Init(GPIOA, &GPIOInitStruct);
+    
+    // 2.配置EXTI的引脚映射
+    // 开启AFIO的时钟
+    RCC_APB2PeriphClockCmd(RCC_ABP2periph_AFIO, ENABLE);
+    // PA0 -> EXTI0
+    GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource0);
+    // PA1 -> EXTI1
+    GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource1);
+    
+    // 3.初始化EXTI
+    // 3.1.初始化EXTI0
+    EXTI_InitTypeDef EXTIInitStruct;
+    EXTIInitStruct.EXTI_Line = EXTI_Line0;
+    EXTIInitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
+    EXTIInitStruct.EXTI_Trigger = EXTI_Trigger_Rising;
+    EXTIInitStruct.EXTI_LineCmd = ENABLE
+    EXTI_Init(&EXTIInitStruct);
+    // 3.2.初始化EXTI1
+    EXTIInitStruct.EXTI_Line = EXTI_Line1;
+    EXTIInitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
+    EXTIInitStruct.EXTI_Trigger = EXTI_Trigger_Rising;
+    EXTIInitStruct.EXTI_LineCmd = ENABLE
+    EXTI_Init(&EXTIInitStruct);
+    
+    // 4.初始化NVIC
+    NVIC_InitTypeDef NVICInitStruct;
+    // 4.1.EXTI0
+    // 先从参考手册的中断向量表中找到中断编号，然后在标准库中找到枚举类型IRQn_Type，查到对应编号
+    NVICInitStruct.NVIC_IRQChannel = EXTI0_IRQn;
+    NVICInitStruct.NVIC_IRQChannelPreemptionPriority = 0;
+    NVICInitStruct.NVIC_IRQChannelSubPriority = 0;
+    NVIC_Init(&NVICInitStruct);
+    // 4.2.EXTI1
+    NVICInitStruct.NVIC_IRQChannel = EXTI1_IRQn;
+    NVICInitStruct.NVIC_IRQChannelPreemptionPriority = 0;
+    NVICInitStruct.NVIC_IRQChannelSubPriority = 0;
+    NVIC_Init(&NVICInitStruct);
+    
+    // 5.初始化PC13
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
+    GPIOInitStruct.GPIO_Pin = GPIO_Pin_13;
+    GPIOInitStruct.GPIO_Mode = GPIO_Mode_Out_OD;
+    GPIOInitStruct.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_Init(GPIOC, &GPIOInitStruct);
+    
+    while(1);
+}
+
+void EXTI0_IRQHandler(void) {
+    // 清除中断
+    EXTI_ClearITPendingBit(EXTI_Line0);
+    // 点亮LED PC13 <- 0
+    GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_RESET);
+}
+
+void EXTI1_IRQHandler(void) {
+    // 清除中断
+    EXTI_ClearITPendingBit(EXTI_Line1);
+    
+    GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET);
+}
+```
+
+### 增强版实验
+
+![image-20240111014757760](assets/image-20240111014757760.png)
+
+![image-20240111014659044](assets/image-20240111014659044.png)
+
+> **PA5 PA6共用一个中断源**
+
+![image-20240111015056115](assets/image-20240111015056115.png)
+
+![image-20240111015347336](assets/image-20240111015347336.png)
+
+![image-20240111015449263](assets/image-20240111015449263.png)
+
+![image-20240111020057731](assets/image-20240111020057731.png)
+
+```c
+int main(void) {
+    // 中断优先级分组
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+    
+    PAL_Init();
+    
+    // 1.初始化IO引脚
+    // 将PA0和PA1分别设置为输入上拉模式
+    // 开启GPIOA的时钟
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+    // PA5, PA6
+    GPIO_InitTypeDef GPIOInitStruct;
+    GPIOInitStruct.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_6;
+    GPIOInitStruct.GPIO_Mode = GPIO_Mode_IPU;
+    GPIO_Init(GPIOA, &GPIOInitStruct);
+    
+    // 2.配置EXTI的引脚映射
+    // 开启AFIO的时钟
+    RCC_APB2PeriphClockCmd(RCC_ABP2periph_AFIO, ENABLE);
+    // PA5 -> EXTI5
+    GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource5);
+    // PA6 -> EXTI6
+    GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource6);
+    
+    // 3.初始化EXTI
+    // 3.1.初始化EXTI5
+    EXTI_InitTypeDef EXTIInitStruct;
+    EXTIInitStruct.EXTI_Line = EXTI_Line5;
+    EXTIInitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
+    EXTIInitStruct.EXTI_Trigger = EXTI_Trigger_Rising;
+    EXTIInitStruct.EXTI_LineCmd = ENABLE
+    EXTI_Init(&EXTIInitStruct);
+    // 3.2.初始化EXTI6
+    EXTIInitStruct.EXTI_Line = EXTI_Line6;
+    EXTIInitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
+    EXTIInitStruct.EXTI_Trigger = EXTI_Trigger_Rising;
+    EXTIInitStruct.EXTI_LineCmd = ENABLE
+    EXTI_Init(&EXTIInitStruct);
+    
+    // 4.初始化NVIC
+    NVIC_InitTypeDef NVICInitStruct;
+    // EXTI5, EXTI6共用一个中断源
+    // 先从参考手册的中断向量表中找到中断编号，然后在标准库中找到枚举类型IRQn_Type，查到对应编号
+    NVICInitStruct.NVIC_IRQChannel = EXTI9_5_IRQn;
+    NVICInitStruct.NVIC_IRQChannelPreemptionPriority = 0;
+    NVICInitStruct.NVIC_IRQChannelSubPriority = 0;
+    NVIC_Init(&NVICInitStruct);
+
+    
+    // 5.初始化PC13
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
+    GPIOInitStruct.GPIO_Pin = GPIO_Pin_13;
+    GPIOInitStruct.GPIO_Mode = GPIO_Mode_Out_OD;
+    GPIOInitStruct.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_Init(GPIOC, &GPIOInitStruct);
+    
+    while(1);
+}
+
+void EXTI9_5_IRQHandler(void) {
+    // 不要写else,因为两个可能同时发生
+    if (EXTI_GetITStatus(EXTI_Line5) == SET) { // EXTI5
+        // 清除中断源
+        EXTI_ClearITPendingBit(EXTI_Line5);
+        // 点灯
+        GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_RESET);
+    }
+    if (EXTI_GetITStatus(EXTI_Line6) == SET) { // EXTI6
+        // 清除中断源
+        EXTI_ClearITPendingBit(EXTI_Line6);
+        // 灭灯
+        GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET);
+    }
+}
+
+```
+
+### PAL库
+
+![image-20240111020942351](assets/image-20240111020942351.png)
+
+![image-20240111022652039](assets/image-20240111022652039.png)
+
+![image-20240111023825662](assets/image-20240111023825662.png)
+
+```C
+#include "stm32f10x_pal_exti.h"
+
+// PA5 PA6
+// EXTI5
+static PalEXTI_HandleTypeDef hEXTI5;
+// EXTI6
+static PalEXTI_HandleTypeDef hEXTI6;
+
+static void OnEXTI5Triggered(void) {
+    GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_RESET);
+}
+static void OnEXTI6Triggered(void) {
+    GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET);
+}
+
+
+int main(void) {
+    PAL_Init();
+    RCC_APB2PeriphClockCmd(RCC_ABP2Periph_GPIOC, ENABLE);
+    GPIO_InitTypeDef GPIOInitStruct;
+    GPIOInitStruct.GPIO_Pin = GPIO_Pin_13;
+    GPIOInitStruct.GPIO_Mode = GPIO_Mode_Out_OD;
+    GPIOInitStruct.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_Init(GPIOC, &GPIOInitStruct);
+    
+    hEXTI5.Init.GPIO.GPIOx = GPIOA;
+    hEXTI5.Init.GPIO.GPIO_Pin = GPIO_Pin_5;
+    hEXTI5.Init.GPIO.GPIO_Mode = GPIO_Mode_IPU;
+    hEXTI5.Init.Exti.EXTI_Mode = EXTI_Mode_Interrupt;
+    hEXTI5.Init.Exti.EXTI_Trigger = EXTI_Trigger_Rising;
+    hEXTI5.Init.Interrupt.PreemptionPriority = 0;
+    hEXTI5.Init.Interrupt.SubPriority = 0;
+    hEXTI5.Init.CallbackFn = OnEXTI5Triggered;
+    PAL_EXTI_Init(&hEXTI5);
+    PAL_EXTI_LineCmd(&hEXTI5, ENABLE);
+    
+    hEXTI6.Init.GPIO.GPIOx = GPIOA;
+    hEXTI6.Init.GPIO.GPIO_Pin = GPIO_Pin_6;
+    hEXTI6.Init.GPIO.GPIO_Mode = GPIO_Mode_IPU;
+    hEXTI6.Init.Exti.EXTI_Mode = EXTI_Mode_Interrupt;
+    hEXTI6.Init.Exti.EXTI_Trigger = EXTI_Trigger_Rising;
+    hEXTI6.Init.Interrupt.PreemptionPriority = 0;
+    hEXTI6.Init.Interrupt.SubPriority = 0;
+    hEXTI6.Init.CallbackFn = OnEXTI6Triggered;
+    PAL_EXTI_Init(&hEXTI6);
+    PAL_EXTI_LineCmd(&hEXTI6, ENABLE);
+    
+}
+
+void EXTI9_5_IRQHandler(void) {
+    PAL_EXTI_IRQHandler(&hEXTI5);
+    PAL_EXTI_IRQHandler(&hEXTI6);
+}
+```
+
+![image-20240111025015595](assets/image-20240111025015595.png)
+
+## 单片机的编程原则
+
+![image-20240111025214961](assets/image-20240111025214961.png)
+
+### 多任务编程
+
+![image-20240111025314404](assets/image-20240111025314404.png)
+
+超声波测距传感器
+
+锂电池完全没电后将无法充电，所以要防止过放
+
+### 使用实时操作系统
+
+![image-20240111025807097](assets/image-20240111025807097.png)
+
+使用裸机多任务模型
+
+![image-20240111030135873](assets/image-20240111030135873.png)
+
+![image-20240111030230966](assets/image-20240111030230966.png)
+
+![image-20240111030403070](assets/image-20240111030403070.png)
+
+### LED闪灯实验
+
+![image-20240111031328179](assets/image-20240111031328179.png)
+
+![image-20240111031603904](assets/image-20240111031603904.png)
+
+![image-20240111031730218](assets/image-20240111031730218.png)
+
+![image-20240111032946650](assets/image-20240111032946650.png)
+
+![image-20240111033355231](assets/image-20240111033355231.png)
+
+![image-20240111033753504](assets/image-20240111033753504.png)
+
+![image-20240111034325832](assets/image-20240111034325832.png)
+
+```C
+static PalButton_HandleTypeDef hButton;
+static uint32_t ledBlinkMode = 0; // 0-慢闪 1-普通 2-快闪
+static uint32_t ledBlinkInterval[] = {1000, 200, 50};
+static uint32_t stage = 0;
+static uint64_t ledLastToggleTime = 0;
+
+static void LED_Init(void);
+static void Buttton_Init(void);
+static void Button_Detect_Proc(void);
+static void OnButtonReleased(void);
+static void LED_Blink_Proc(void);
+
+int main(void) {
+    LED_Init();
+    Button_Init();
+    
+    while(1) {
+        LED_Blink_Proc();
+        Button_Detect_Proc();
+    }
+}
+
+static void LED_Init(void) {
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
+    GPIO_InitTypeDef GPIOInitStruct;
+    GPIOInitStruct.GPIO_Pin = GPIO_Pin_13;
+    GPIOInitStruct.GPIO_Mode = GPIO_Mode_Out_OD;
+    GPIOInitStruct.GPIO_Speed = GPIO_Speeed_2MHz;
+    GPIO_Init(GPIOC, &GPIOInitStruct);
+}
+
+static void Button_Init(void) {
+    hButton.Init.GPIOx = GPIOA;
+    hButton.Init.GPIO_Pin = GPIO_Pin_0;
+    hButton.Init.Button_Mode = Button_Mode_IPU;
+    hButton.Init.ButtonPressedCallback = 0;
+    hButton.Init.ButtonReleasedCallback = OnButtonReleased;
+    
+    PAL_Button_Init(&hButton);
+}
+
+static void Button_Detect_Proc(void) {
+    PAL_Button_Proc(&hButton);
+}
+
+static void OnButtonReleased(void) {
+    ledBlinkMode = (ledBlinkMode + 1) % 3;
+}
+
+static void LED_Blink_Proc(void) {
+    switch(stage) {
+        case 0: // 灭
+            if (PAL_GetTick() - ledLastToggleTime > ledBlinkInterval[ledBlinkMode]) {
+                GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_RESET); //点亮
+                ledLastToggleTime = PAL_GetTick();
+                stage = 1;
+            }
+            break;
+         case 1: // 亮
+            if (PAL_GetTick() - ledLastToggleTime > ledBlinkInterval[ledBlinkMode]) {
+                GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET); // 熄灭
+                ledLastToggleTime = PAL_GetTick();
+                stage = 0;
+            }
+            break;
+    }
+}
+```
+
+## 串口通信
+
+![image-20240111035158158](assets/image-20240111035158158.png)
+
+![image-20240111035651657](assets/image-20240111035651657.png)
+
+**备注**：**电压基准**是指GND视为0V,3.3V则是比GND高3.3V
+
+### 串口数据帧格式
+
+![image-20240111040124830](assets/image-20240111040124830.png)
+
+![image-20240111040145134](assets/image-20240111040145134.png)
+
+![image-20240111040158569](assets/image-20240111040158569.png)
+
+使用高电平表示**空闲**
+
+![image-20240111040403669](assets/image-20240111040403669.png)
+
+![image-20240111040442358](assets/image-20240111040442358.png)
+
+![image-20240111040703245](assets/image-20240111040703245.png)
+
+![image-20240111040800159](assets/image-20240111040800159.png)
+
+在实际使用中例子1和例子4较多，因为8位为一个字节
+
+![image-20240111041052025](assets/image-20240111041052025.png)
+
+![image-20240111041110533](assets/image-20240111041110533.png)
+
+![image-20240111041258188](assets/image-20240111041258188.png)
+
+（连续发送要求中间没有空闲）？
+
+### 同步和异步通信
+
+![image-20240111041545736](assets/image-20240111041545736.png)
+
+![image-20240111041622148](assets/image-20240111041622148.png)
+
+### 波特率
+
+![image-20240111041724215](assets/image-20240111041724215.png)
+
+在空闲时一直采集监控状态，当发现开始后，间隔1.5个码元采集一个数据，之后间隔1个**码元**
+
+**码元**：一个高电平或一个低电平称为一个码元
+
+### 硬件流控
+
+![image-20240111042108740](assets/image-20240111042108740.png)
+
+发送方过快，导致接收方来不及处理，可以反馈一个信号给发送方，来控制发送速度
+
+### 串口流控
+
+![image-20240111042418863](assets/image-20240111042418863.png)
+
+## USART
+
+![image-20240111042752275](assets/image-20240111042752275.png)
+
+F103C8T6只有前3个串口
+
+![image-20240111043020811](assets/image-20240111043020811.png)
+
+### 寄存器组
+
+![image-20240111043742074](assets/image-20240111043742074.png)
+
+### 串并转换电路
+
+![image-20240111043906210](assets/image-20240111043906210.png)
+
+![image-20240111044127562](assets/image-20240111044127562.png)
+
+### 串并转换电路实现
+
+![image-20240111044333801](assets/image-20240111044333801.png)
+
+![image-20240111044528443](assets/image-20240111044528443.png)
+
+### USART的基本模型
+
+![image-20240111044949746](assets/image-20240111044949746.png)
+
+### USART完整框图
+
+![image-20240111045143964](assets/image-20240111045143964.png)
+
+## USART参数配置
+
+### 数据帧格式设置
+
+![image-20240111050204598](assets/image-20240111050204598.png)
+
+### 数据传输方向选择
+
+![image-20240111050601963](assets/image-20240111050601963.png)
+
+### 波特率设置
+
+![image-20240111050930302](assets/image-20240111050930302.png)
+
+![image-20240111051319570](assets/image-20240111051319570.png)
+
+![image-20240111051357480](assets/image-20240111051357480.png)
+
+### USART的总开关
+
+![image-20240111051814989](assets/image-20240111051814989.png)
+
+## USART数据发送过程
+
+![image-20240111052121209](assets/image-20240111052121209.png)
+
+![image-20240111052240420](assets/image-20240111052240420.png)
+
+TDR寄存器和移位寄存器的双缓冲是连续发送的保障
+
+![image-20240111052514675](assets/image-20240111052514675.png)
+
+通过读取标志位来解决这两个问题
+
+### SR状态寄存器
+
+![image-20240111053131667](assets/image-20240111053131667.png)
+
+![image-20240111053507638](assets/image-20240111053507638.png)
+
+![image-20240111053842865](assets/image-20240111053842865.png)
+
+![image-20240111053954428](assets/image-20240111053954428.png)
+
+## USART数据接收过程
+
+![image-20240111054152489](assets/image-20240111054152489.png)
+
+![image-20240111054323880](assets/image-20240111054323880.png)
+
+![image-20240111054535256](assets/image-20240111054535256.png)
+
+![image-20240111054649997](assets/image-20240111054649997.png)
+
+## USART错误标志位
+
+![image-20240111054804684](assets/image-20240111054804684.png)
+
+![image-20240111054839166](assets/image-20240111054839166.png)
+
+![image-20240111054932207](assets/image-20240111054932207.png)
+
+![image-20240111055216567](assets/image-20240111055216567.png)
+
+**注意**：
+
+**过采集**： 接收方采集时并不是简单的采集，而是采用过采样的方法。在采集时使用比较高的频率采集多次
+
+对于串口来说，就是采用16倍的波特率采集码元正中间的数据，采集3次。如果3次不一致，则发生噪声错误
+
+![image-20240111055503084](assets/image-20240111055503084.png)
+
+接收的数据没有被即时读出来，导致移位寄存器数据在等待，如果此时收到第三个数据，则第二个数据会覆盖第一个数据，则发送**过载错误**
+
+错误标志位仅对接收方有效
+
+![image-20240111055715115](assets/image-20240111055715115.png)
+
+一定要先备份SR寄存器，再读取数据，因为SR寄存器表示当前在RDR寄存器中数据的错误，如果该数据被读出，则SR寄存器会被清空。读完后再进行错误处理，避免过载错误
+
+## USART标准库编程
+
