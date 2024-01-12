@@ -2,6 +2,8 @@
 
 ## 芯片信息
 
+![image-20240111221141882](assets/image-20240111221141882.png)
+
 ![image-20240106034554980](assets/image-20240106034554980.png)
 
 ![image-20240106040150483](assets/image-20240106040150483.png)
@@ -52,6 +54,8 @@
 
 ![image-20240108014434891](assets/image-20240108014434891.png)
 
+### 8种工作模式
+
 ![image-20240108015026727](assets/image-20240108015026727.png)
 
 ![image-20240108015136213](assets/image-20240108015136213.png)
@@ -99,6 +103,8 @@
 ![image-20240108031734243](assets/image-20240108031734243.png)
 
 ![image-20240108212632101](assets/image-20240108212632101.png)
+
+根据开发板的实际电路图来决定是开漏还是推挽
 
 ### 代码结构
 
@@ -852,3 +858,527 @@ TDR寄存器和移位寄存器的双缓冲是连续发送的保障
 
 ## USART标准库编程
 
+![image-20240111221235213](assets/image-20240111221235213.png)
+
+![image-20240111221550674](assets/image-20240111221550674.png)
+
+![image-20240111222555567](assets/image-20240111222555567.png)
+
+### UART_Init
+
+![image-20240111222658147](assets/image-20240111222658147.png)
+
+### USART_Cmd
+
+![image-20240111223706627](assets/image-20240111223706627.png)
+
+### USART_SendData
+
+![image-20240111223810648](assets/image-20240111223810648.png)
+
+### USART_ReceiveData
+
+![image-20240111224025724](assets/image-20240111224025724.png)
+
+### USART_GetFlagStatus
+
+![image-20240111224049571](assets/image-20240111224049571.png)
+
+### 代码编程
+
+![image-20240111224513986](assets/image-20240111224513986.png)
+
+#### IO引脚配置
+
+![image-20240111224802322](assets/image-20240111224802322.png)
+
+![image-20240111230538693](assets/image-20240111230538693.png)
+
+> **TX**：推挽可以输出高低电平，开漏模式只能输出低电平和高阻抗，但在外接电路的情况下也可以输出高电平。**串口输出速率**最高不会超过2M，但是为了保险起见，选择10MHz
+>
+> **RX**：为了防止Rx线路断开，导致输入引脚悬空，引入空间中的电磁波的脏数据，所以要使用输入上拉或者下拉。然后因为UART协议高电平是空闲状态，所以断开后保持高电平比较合适，如果是低电平可能导致误输入0x00，接着没有停止位，触发FE帧格式错误。所以选择**上拉**模式
+>
+> **CTS**：输入上拉模式。因为该线路低电平有效
+>
+> **RTS**：复用推挽模式。输出高低电平。RTS动作的比Tx引脚要慢，输出速率随便。
+>
+> **CK**：向外输出时钟
+
+![image-20240111230906530](assets/image-20240111230906530.png)
+
+**双工**：表示数据的发送和接收是双向的，一方既可以接收数据，也可以发送数据
+
+**半双工和全双工**：半双工表示在接收数据的同时就不能发送数据，在发送数据的同时就不能接收数据。两个方向的数据传输不能同时进行。全双工就表示两个方向的数据传输可以同时进行。半双工时，连接两边的TX引脚
+
+![image-20240111231532180](assets/image-20240111231532180.png)
+
+![image-20240112011235681](assets/image-20240112011235681.png)
+
+![image-20240112011505131](assets/image-20240112011505131.png)
+
+![image-20240112011635501](assets/image-20240112011635501.png)
+
+![image-20240112012130811](assets/image-20240112012130811.png)
+
+![image-20240112012411704](assets/image-20240112012411704.png)
+
+![image-20240112012557941](assets/image-20240112012557941.png)
+
+![image-20240112013651790](assets/image-20240112013651790.png)
+
+#### 代码
+
+```c
+int main(void) {
+    GPIO_InitTypeDef GPIOInitStruct;
+    
+    PAL_Init();
+    
+    // 初始化Tx PB6 AF_PP 10MHz
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+    GPIOInitStruct.GPIO_Pin = GPIO_Pin_6;
+    GPIOInitStruct.GPIO_Mode = GPIO_Mode_AF_PP;
+    GPIOInitStruct.GPIO_Speed = GPIO_Speed_10MHz;
+    GPIO_Init(GPIOB, &GPIOInitStruct);
+    
+    // 初始化Rx PB7 IPU
+    GPIOInitStruct.GPIO_Pin = GPIO_Pin_7;
+    GPIOInitStruct.GPIO_Mode = GPIO_Mode_IPU;
+    GPIO_Init(GPIOB, &GPIOInitStruct);
+    
+    // 重映射USART1的Tx和Rx引脚
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+    GPIO_PinRemapConfig(GPIO_Remap_USART1, ENABLE);
+    
+    // 使能USART1的时钟并初始化
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
+    USART_InitTypeDef USARTInitStruct;
+    USARTInitStruct.USART_BaudRate = 9600;
+    USARTInitStruct.USART_WordLength = USART_WordLength_8b;
+    USARTInitStruct.USART_StopBits = USART_StopBits_1;
+    USARTInitStruct.USART_Parity = USART_Parity_No;
+    USARTInitStruct.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    USARTInitStruct.USART_Mode = USART_Mode_Tx | USART_Mode_Rx;
+    USART_Init(USART1, &USARTInitStruct);
+    
+    // 闭合USART1总开关
+	USART_Cmd(USART1, ENABLE);
+    
+    // 初始化LED
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
+    GPIOInitStruct.GPIO_Pin = GPIO_Pin_13;
+    GPIOInitStruct.GPIO_Mode = GPIO_Mode_Out_OD;
+    GPIOInitStruct.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_Init(GPIOC, &GPIOInitStruct);
+    
+    GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET);
+    
+    // 发送数据
+    while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+    USART_SendData(USART1, 0x5a);
+    while(USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET);
+    
+    // 读取数据
+    uint8_t c;
+    
+    while (1) {
+        while(USART_GetFlagStatus(USART1, USART_FLAG_RXNE) == RESET);
+        c = USART_ReceiveData(USART1);
+        if (c == '0') {
+            GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET);
+        } else if (c == '1') {
+            GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_RESET);
+        }
+    }
+}
+```
+
+### 中断方式的数据接收
+
+![image-20240112014427807](assets/image-20240112014427807.png)
+
+![image-20240112014602487](assets/image-20240112014602487.png)
+
+![image-20240112014841169](assets/image-20240112014841169.png)
+
+#### 中断共用
+
+![image-20240112020006278](assets/image-20240112020006278.png)
+
+![image-20240112020258737](assets/image-20240112020258737.png)
+
+#### 编程接口
+
+![image-20240112020617575](assets/image-20240112020617575.png)
+
+###### USART_ITConfig
+
+![image-20240112020947989](assets/image-20240112020947989.png)
+
+###### USART_GetITStatus
+
+![image-20240112021232415](assets/image-20240112021232415.png)
+
+###### USART_ClearITPendingBit
+
+![image-20240112021449402](assets/image-20240112021449402.png)
+
+###### 处理时间
+
+![image-20240112021627292](assets/image-20240112021627292.png)
+
+###### 就地处理
+
+![image-20240112021942196](assets/image-20240112021942196.png)
+
+8字节0.8ms
+
+###### 缓存后处理
+
+![image-20240112022255243](assets/image-20240112022255243.png)
+
+![image-20240112022449343](assets/image-20240112022449343.png)
+
+#### 中断程序
+
+![image-20240112023217465](assets/image-20240112023217465.png)
+
+#### 清除中断
+
+![image-20240112024228903](assets/image-20240112024228903.png)
+
+**硬件置位，软件复位**：软件不直接写标志位，而是反向满足硬件置位条件来清除
+
+```c
+int main(void) {
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+    
+    PAL_Init();
+    
+    LED_Init();
+    USART_Recv_Init();
+    
+}
+
+static void LED_Init(void) {
+    GPIO_InitTypeDef GPIOInitStruct;
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
+    GPIOInitStruct.GPIO_Pin = GPIO_Pin_13;
+    GPIOInitStruct.Mode = GPIO_Mode_Out_OD;
+    GPIOInitStruct.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_Init(GPIOC, &GPIOInitStruct);
+    
+}
+
+static void USART_Recv_Init(void) {
+    GPIO_InitTypeDef GPIOInitStruct;
+    // 初始化Tx PB6 AF_PP 10MHz
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+    GPIOInitStruct.GPIO_Pin = GPIO_Pin_6;
+    GPIOInitStruct.GPIO_Mode = GPIO_Mode_AF_PP;
+    GPIOInitStruct.GPIO_Speed = GPIO_Speed_10MHz;
+    GPIO_Init(GPIOB, &GPIOInitStruct);
+    
+    // 初始化Rx PB7 IPU
+    GPIOInitStruct.GPIO_Pin = GPIO_Pin_7;
+    GPIOInitStruct.GPIO_Mode = GPIO_Mode_IPU;
+    GPIO_Init(GPIOB, &GPIOInitStruct);
+    
+    // 重映射USART1的Tx和Rx引脚
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+    GPIO_PinRemapConfig(GPIO_Remap_USART1, ENABLE);
+    
+    // 使能USART1的时钟并初始化
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
+    USART_InitTypeDef USARTInitStruct;
+    USARTInitStruct.USART_BaudRate = 9600;
+    USARTInitStruct.USART_WordLength = USART_WordLength_8b;
+    USARTInitStruct.USART_StopBits = USART_StopBits_1;
+    USARTInitStruct.USART_Parity = USART_Parity_No;
+    USARTInitStruct.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    USARTInitStruct.USART_Mode = USART_Mode_Tx | USART_Mode_Rx;
+    USART_Init(USART1, &USARTInitStruct);
+    
+    // 配置中断源
+    USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+    
+    NVIC_InitTypeDef NVICInitStruct;
+    NVICInitStruct.NVIC_IRQChannel = USART1_IRQn;
+    NVICInitStruct.NVIC_IRQChannelPreemptionPriority = 0;
+    NVICInitStruct.NVIC_IRQChannelSubPriority = 0;
+    NVICInitStruct.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVICInitStruct);
+    
+    // 闭合USART1总开关
+	USART_Cmd(USART1, ENABLE);
+}
+
+void USART1_IRQHandler(void) {
+    uint8_t c;
+    if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET) {
+        // 读取了数据，且由于RDR被读取，中断也被清除
+        c = USART_ReceiveData(USART1);
+        if (c == '0') {
+            // 熄灯
+            GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_SET);
+        } else {
+            GPIO_WriteBit(GPIOC, GPIO_Pin_13, Bit_RESET);
+        }
+    }
+}
+```
+
+#### Echo实验（缓存处理）
+
+![image-20240112032746422](assets/image-20240112032746422.png)
+
+发送数据用时一定超过接收单个数据周期
+
+#### 队列
+
+![image-20240112033247190](assets/image-20240112033247190.png)
+
+![image-20240112033438248](assets/image-20240112033438248.png)
+
+![image-20240112033526975](assets/image-20240112033526975.png)
+
+```c
+#include "queue.h"
+
+static Queue_HandleTypeDef hQueue;
+
+int main(void) {
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+    
+    PAL_Init();
+    USART_Echo_Init();
+    
+    while (1) {
+        USART_Echo_Proc();
+    }
+}
+
+static void USART_Echo_Init(void) {
+    
+    Queue_Init(&hQueue);
+    
+    // Init PB6 PB7
+    GPIO_InitTypeDef GPIOInitStruct;
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+    GPIOInitStruct.GPIO_Pin = GPIO_Pin_6;
+    GPIOInitStruct.GPIO_Mode = GPIO_Mode_AF_PP;
+    GPIOInitStruct.GPIO_Speed = GPIO_Speed_10MHz;
+    GPIO_Init(GPIOB, &GPIOInitStruct);
+    
+    GPIOInitStruct.GPIO_Pin = GPIO_Pin_7;
+    GPIOInitStruct.GPIO_Mode = GPIO_Mode_IPU;
+    GPIO_Init(GPIOB, &GPIOInitStruct);
+    
+    // AFIO
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+    GPIO_PinRemapConfig(GPIO_Remap_USART1, ENABLE);
+    
+    // USART1
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
+    USART_InitTypeDef USARTInitStruct;
+    USARTInitStruct.USART_BaudRate = 9600;
+    USARTInitStruct.USART_WordLength = USART_WordLength_8b;
+    USARTInitStruct.USART_Parity = USART_Parity_No;
+    USARTInitStruct.USART_StopBits = USART_Mode_Tx | USART_Mode_Rx;
+    USARTInitStruct.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    USART_Init(USART1, &USARTInitStruct);
+    
+    // 配置中断
+    USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+    
+    NVIC_InitTypeDef NVICInitStruct;
+    NVICInitStruct.NVIC_IRQChannel = USART1_IRQn;
+    NVICInitStruct.NVIC_IRQChannelPreemptionPriority = 0;
+    NVICInitStruct.NVIC_IRQChannelSubPriority = 0;
+    NVICInitStruct.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVICInitStruct);
+    
+    // 闭合USART1总开关
+    USART_Cmd(USART1, ENABLE);
+    
+}
+
+void USART1_IRQHandler(void) {
+    uint8_t c;
+    if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET) {
+        c = USART_ReceiveData(USART1);
+        Queue_Enqueue(&hQueue, c);
+    }
+}
+
+static uint8_t a[100];
+static uint16_t cursor = 0;
+
+static void USART_Echo_Proc(void) {
+    uint8_t c;
+    USART_ITConfig(USART1, USART_IT_RXNE, DISABLE);
+    ErrorStatus error = Queue_Dequeue(&hQueue, &c);
+    USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+    if (error == SUCESS) {
+        a[cursor++] = c;
+        // 收到新行
+        if (cursor > 2 && a[cursor-2] == 'r' && a[cursor-1] == '\n') {
+            a[cursor] = '\0';
+            USART1_SendString((const char *)a);
+            cursor = 0;
+        }
+    }
+}
+
+static void USART1_SendString(const char *Str) {
+    for (uint32_t i = 0; i < strlen(Str); i++) {
+        while (USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+    	USART_SendData(USART1, Str[i]);
+    }
+   	while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET);
+}
+```
+
+#### 改进
+
+为避免在进行出队操作时，中断到来进行入队操作，导致错误，在出队时屏蔽中断
+
+### 中断方式的数据发送
+
+![image-20240112042731347](assets/image-20240112042731347.png)
+
+```c
+#include "queue.h"
+
+static Queue_HandleTypeDef RxHQueue;
+static Queue_HandleTypeDef TxHQueue;
+
+int main(void) {
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+    
+    PAL_Init();
+    USART_Echo_Init();
+    
+    while (1) {
+        USART_Echo_Proc();
+    }
+}
+
+static void USART_Echo_Init(void) {
+    
+    Queue_Init(&RxHQueue);
+    Queue_Init(&TxHQueue);
+    
+    // Init PB6 PB7
+    GPIO_InitTypeDef GPIOInitStruct;
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+    GPIOInitStruct.GPIO_Pin = GPIO_Pin_6;
+    GPIOInitStruct.GPIO_Mode = GPIO_Mode_AF_PP;
+    GPIOInitStruct.GPIO_Speed = GPIO_Speed_10MHz;
+    GPIO_Init(GPIOB, &GPIOInitStruct);
+    
+    GPIOInitStruct.GPIO_Pin = GPIO_Pin_7;
+    GPIOInitStruct.GPIO_Mode = GPIO_Mode_IPU;
+    GPIO_Init(GPIOB, &GPIOInitStruct);
+    
+    // AFIO
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+    GPIO_PinRemapConfig(GPIO_Remap_USART1, ENABLE);
+    
+    // USART1
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
+    USART_InitTypeDef USARTInitStruct;
+    USARTInitStruct.USART_BaudRate = 9600;
+    USARTInitStruct.USART_WordLength = USART_WordLength_8b;
+    USARTInitStruct.USART_Parity = USART_Parity_No;
+    USARTInitStruct.USART_StopBits = USART_Mode_Tx | USART_Mode_Rx;
+    USARTInitStruct.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    USART_Init(USART1, &USARTInitStruct);
+    USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+    USART_ITConfig(USART1, USART_IT_TXE, ENABLE);
+    
+    
+    // 配置NVIC
+    NVIC_InitTypeDef NVICInitStruct;
+    NVICInitStruct.NVIC_IRQChannel = USART1_IRQn;
+    NVICInitStruct.NVIC_IRQChannelPreemptionPriority = 0;
+    NVICInitStruct.NVIC_IRQChannelSubPriority = 0;
+    NVICInitStruct.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVICInitStruct);
+    
+    // 闭合USART1总开关
+    USART_Cmd(USART1, ENABLE);
+    
+}
+
+void USART1_IRQHandler(void) {
+    uint8_t c;
+    if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET) {
+        c = USART_ReceiveData(USART1);
+        Queue_Enqueue(&RxHQueue, c);
+    }
+    if (USART_GetITStatus(USART1, USART_IT_TXE) == SET) {
+        if (Queue_Dequeue(&hQueue, &c) == SUCCESS) {
+            USART_SendData(USART1, c);
+        } else {
+            USART_ITConfig(USART1, USART_IT_TXE, DISABLE);
+        }
+        
+    }
+}
+
+static uint8_t a[100];
+static uint16_t cursor = 0;
+
+static void USART_Echo_Proc(void) {
+    uint8_t c;
+    USART_ITConfig(USART1, USART_IT_RXNE, DISABLE);
+    ErrorStatus error = Queue_Dequeue(&RxHQueue, &c);
+    USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
+    if (error == SUCESS) {
+        a[cursor++] = c;
+        // 收到新行
+        if (cursor > 2 && a[cursor-2] == 'r' && a[cursor-1] == '\n') {
+            a[cursor] = '\0';
+            USART1_SendString((const char *)a);
+            cursor = 0;
+        }
+    }
+}
+
+static void USART1_SendString(const char *Str) {
+    USART_ITConfig(USART1, USART_IT_TXE, DISABLE);
+    for (uint32_t i = 0; i < strlen(Str); i++) {
+        Queue_Enqueue(&TxHQueue, Str[i]);
+    }
+   	USART_ITConfig(USART1, USART_IT_TXE, ENABLE);
+}
+```
+
+## USART PAL 库编程
+
+![image-20240112045530562](assets/image-20240112045530562.png)
+
+![image-20240112051209475](assets/image-20240112051209475.png)
+
+![image-20240112051458751](assets/image-20240112051458751.png)
+
+![image-20240112051746221](assets/image-20240112051746221.png)
+
+![image-20240112051827970](assets/image-20240112051827970.png)
+
+![image-20240112052144571](assets/image-20240112052144571.png)
+
+![image-20240112052246171](assets/image-20240112052246171.png)
+
+![image-20240112052408216](assets/image-20240112052408216.png) 
+
+**超时等待**
+
+![image-20240112052556983](assets/image-20240112052556983.png)
+
+### 串口的波形监控
+
+![image-20240112055509937](assets/image-20240112055509937.png)
+
+![image-20240112060742289](assets/image-20240112060742289.png)
