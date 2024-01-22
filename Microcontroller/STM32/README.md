@@ -1437,8 +1437,266 @@ static void USART1_SendString(const char *Str) {
 
 ![image-20240112093511890](assets/image-20240112093511890.png)
 
+## 单字符指令
+
 #### LED闪灯实验(单字符指令)
 
 ![image-20240112094129376](assets/image-20240112094129376.png)
 
 ![image-20240112095010625](assets/image-20240112095010625.png)
+
+#### 编码
+
+![Screenshot from 2024-01-14 21-29-00](assets/Screenshot from 2024-01-14 21-29-00.png)
+
+## 字符串指令
+
+![image-20240114214816135](assets/image-20240114214816135.png)
+
+![image-20240114215047773](assets/image-20240114215047773.png)
+
+![image-20240114215121885](assets/image-20240114215121885.png)
+
+![image-20240114215759745](assets/image-20240114215759745.png)
+
+## RCC与时钟
+
+Reset and Clock Control
+
+### 时钟树
+
+![image-20240114222929713](assets/image-20240114222929713.png)
+
+![image-20240114223029202](assets/image-20240114223029202.png)
+
+**IWDG**：独立看门狗
+
+### 频率运算
+
+![image-20240114223539089](assets/image-20240114223539089.png)
+
+![image-20240114223911088](assets/image-20240114223911088.png)
+
+8分频
+
+![image-20240114225145825](assets/image-20240114225145825.png)
+
+![image-20240114225734767](assets/image-20240114225734767.png)
+
+![image-20240114230703035](assets/image-20240114230703035.png)
+
+### 树的结构
+
+![image-20240114231326107](assets/image-20240114231326107.png)
+
+#### 树根
+
+![image-20240114231836482](assets/image-20240114231836482.png)
+
+> In the context of MCU (Microcontroller Unit) clocks, "HSI" and "HSE" refer to different types of internal and external clock sources:
+>
+> 1. **HSI (High-Speed Internal):** This is an internal high-speed clock. MCUs often include an internal RC (Resistor-Capacitor) oscillator that provides a clock source that doesn't require any external hardware. The speed of HSI clocks can vary depending on the specific MCU, but they are typically in the range of several MHz (Megahertz). The advantage of an HSI clock is its availability without the need for external components, which can save cost and board space. However, its accuracy and stability are usually less than that of an external crystal oscillator.
+>
+> 2. **HSE (High-Speed External):** This refers to an external high-speed clock source. Typically, this is a crystal or ceramic resonator that is connected to the MCU externally. HSE clocks can offer greater accuracy and stability compared to HSI clocks. They are often used in applications where precise timing is critical, such as in communication interfaces or high-speed data processing. The frequency of an HSE clock is determined by the external crystal used and can also be in the range of several MHz.
+>
+> In summary, HSI is an internal clock source that's readily available but less accurate, while HSE is an external clock source that's more accurate but requires additional hardware. The choice between HSI and HSE depends on the requirements of your application, including factors like cost, accuracy, power consumption, and available space.
+
+**SYSCLK**系统时钟最大值为72MHz,所以树根产生的时钟最大不能超过72M
+
+![image-20240114232538901](assets/image-20240114232538901.png)
+
+> Typically, a microcontroller unit (MCU) does not use both HSI (High-Speed Internal) and HSE (High-Speed External) clock sources simultaneously for its core operation. Instead, the MCU will typically be configured to use either one of these sources as its main clock. However, there are a few points to consider:
+>
+> 1. **Clock Switching:** MCUs often allow switching between HSI and HSE. This can be done dynamically during runtime. For example, an MCU might start up using the HSI (since it's immediately available) and then switch to the HSE once it's stabilized and ready. This flexibility can be useful in applications where initial quick start-up is required, followed by operation that demands higher clock accuracy.
+>
+> 2. **Multiple Clock Domains:** Some complex MCUs have multiple clock domains, and it's possible that different parts of the MCU might use different clock sources. For example, one part of the MCU could be using the HSI for certain functions, while another part uses the HSE.
+>
+> 3. **Peripheral Clocking:** Peripherals within the MCU might have the option to use a different clock source than the main CPU core. For example, a communication peripheral might use HSE for accurate baud rate generation, while the main processor core runs on HSI.
+>
+> 4. **Clock Backup or Failover:** In some designs, both HSI and HSE might be used in a backup or failover mode. If the primary clock (say HSE) fails or becomes unstable, the MCU can switch to the secondary clock (HSI) to maintain operation.
+>
+> 5. **Power Management:** In low-power modes, the MCU might switch between HSI and HSE based on power consumption requirements, using HSI for low-power states due to its typically lower power consumption.
+>
+> In most cases, the use of HSI or HSE (or both in different scenarios) is a design decision based on the specific requirements of the application, such as power consumption, precision, cost, and the nature of the tasks being performed by the MCU. The configuration is usually done through the MCU's clock system setup, which is controlled by software.
+
+#### 系统时钟的来源
+
+![image-20240114233214347](assets/image-20240114233214347.png)
+
+#### **锁相环**
+
+![image-20240115012149171](assets/image-20240115012149171.png)
+
+### 树枝和树叶
+
+![image-20240115012728489](assets/image-20240115012728489.png)
+
+#### 总线时钟产生原理
+
+![image-20240115013255624](assets/image-20240115013255624.png)
+
+> PCLK1和PCLK2是由HCLK分频产生，树图有误。PCLK1 = HCLK / 1...16
+
+![image-20240115013640490](assets/image-20240115013640490.png)
+
+#### 外设的复位
+
+![image-20240115013822555](assets/image-20240115013822555.png)
+
+片上外设复位后所有**记忆性元件**里面所包含的信息都会被清除
+
+`RCC_APB2PeriphResetCmd(RCC_APB2Periph_USART1, ENABLE)`相当于按下复位按钮，一直保持复位状态
+
+`RCC_APB2PeriphResetCmd(RCC_APB2Periph_USART1, ENABLE)`相当于松开复位按钮
+
+> RCC stands for Reset and Clock Control, and it is a critical component in microcontroller units (MCUs), particularly those based on ARM architectures like STM32 series from STMicroelectronics. The RCC is responsible for managing the clocks to the various parts of the MCU. Here's a breakdown of its primary functions:
+>
+> 1. **Clock Source Selection:** The RCC allows you to select the clock source for the MCU. This could be an internal clock like the High-Speed Internal (HSI) oscillator, an external clock like the High-Speed External (HSE) oscillator, or even a Low-Speed External (LSE) oscillator. The choice of clock source depends on the requirements of your application, such as the need for accuracy, power efficiency, or cost considerations.
+>
+> 2. **Clock Configuration and Management:** Once a clock source is selected, the RCC is used to configure it. This includes setting the frequency, dividing it down to create sub-clocks for different parts of the MCU, and enabling or disabling certain clocks to save power. For instance, in an STM32 MCU, you can use the RCC to configure the system clock, the peripheral clocks, and more.
+>
+> 3. **Reset Management:** The RCC also manages the reset signals for the MCU. This includes initiating a system reset, managing the reset source (whether it's from a power-on reset, an external reset signal, or a software-triggered reset), and resetting specific peripherals to their default state.
+>
+> 4. **Peripheral Clock Enable/Disable:** To save power, the RCC can enable or disable the clocks to various peripherals. When a peripheral's clock is disabled, it essentially enters a low-power or off state, reducing overall power consumption.
+>
+> 5. **Clock Security System (CSS):** In some MCUs, the RCC includes a Clock Security System that provides additional reliability. If the external crystal (HSE) fails, the CSS can automatically switch the system clock to the internal (HSI) source to ensure that the MCU continues to operate.
+>
+> 6. **Bus Clock Configuration:** MCUs have different buses (like AHB, APB) connecting various components. The RCC controls the clocks to these buses, allowing for fine-grained control over the performance and power usage.
+>
+> In summary, the RCC in a microcontroller is a vital subsystem that manages all aspects of the clocking
+>
+> system, including selecting and configuring clock sources, managing resets, and controlling the power to peripherals. Its proper configuration is essential for the efficient and reliable operation of the MCU.
+
+
+
+> The "past history" of a sequential logic circuit, including registers, is known through the use of storage elements such as flip-flops or latches. These elements are capable of holding a value, thereby providing a memory of past states or inputs. Here's how this works:
+>
+> 1. **Flip-Flops and Latches:** These are basic building blocks of memory in digital circuits. A flip-flop is a type of latch that changes its output only at the edge of a clock signal (either the rising or falling edge). Latches can change their output whenever their input changes, depending on their type. Both flip-flops and latches can store a single bit of data (0 or 1).
+>
+> 2. **State Retention:** When a value is written to a flip-flop or latch, it retains that value until it is changed by a subsequent operation. This retention allows the circuit to have a "memory" of what has happened in the past. For example, if a flip-flop was set to 1 during the last clock cycle, it remains at 1 until it is explicitly reset to 0 in a future operation.
+>
+> 3. **Sequential Logic Circuits:** In more complex sequential circuits, such as counters, shift registers, or state machines, multiple flip-flops are combined. The arrangement and interconnection of these flip-flops allow the circuit to remember a sequence of events or states. For instance, a shift register can remember a series of bits that have been shifted through it over several clock cycles.
+>
+> 4. **Feedback Paths:** Some sequential circuits include feedback paths, where the output of a flip-flop is connected back to its input, either directly or through combinational logic. This setup can create circuits that remember more complex patterns or states.
+>
+> 5. **Register Files and Memory:** In microprocessors and microcontrollers, register files are used to store multiple bits of data. These registers are essentially a collection of flip-flops, each capable of storing one bit. Similarly, memory units like RAM (Random Access Memory) are made up of a large number of flip-flops or equivalent storage elements, allowing them to store the history of data they have received.
+>
+> 6. **Clock Synchronization:** The history in these circuits is updated or changed in synchronization with the clock signal. This ensures that the entire system or device operates in a coordinated manner, with the past history being updated at regular, predictable intervals.
+>
+> In summary, the history of a sequential logic circuit is known and remembered through the use of storage elements like flip-flops and latches. These elements store the state of the circuit at each clock cycle, allowing the circuit to have a memory of its past states.
+
+#### 完整的时钟树
+
+![image-20240115015712266](assets/image-20240115015712266.png)
+
+![image-20240115015408531](assets/image-20240115015408531.png)
+
+## RCC编程
+
+![image-20240115020206366](assets/image-20240115020206366.png)
+
+### 标准库接口
+
+![image-20240115020738361](assets/image-20240115020738361.png)
+
+![image-20240115021307955](assets/image-20240115021307955.png)
+
+> The Reset and Clock Control (RCC) module in a microcontroller typically performs a reset not by directly manipulating the system clock, but rather by triggering a sequence of events that reinitializes the system's hardware components. The process of a reset generally involves the following steps, but it's important to note that the exact mechanism can vary depending on the specific microcontroller architecture:
+>
+> 1. **Reset Signal Generation:** When a reset condition is detected (such as a power-on, external reset signal, software-triggered reset, or watchdog timer expiry), the RCC generates a reset signal. This signal is a specific electrical pulse that is sent to various parts of the microcontroller.
+>
+> 2. **Clearing Registers and States:** Upon receiving the reset signal, most of the internal registers within the CPU and peripherals are set to their default state. This typically includes zeroing out registers or setting them to a predefined value specified in the microcontroller's datasheet.
+>
+> 3. **Halting the CPU:** The CPU is halted to stop the execution of the current program. This step is crucial to prevent the CPU from executing random or erroneous instructions during the reset process.
+>
+> 4. **Resetting the Clock System:** While the RCC doesn't necessarily stop the system clock, it may reset the clock configuration to its default state. This could mean switching back to a default internal clock source (like an internal RC oscillator) and resetting any clock dividers or multipliers to their default values.
+>
+> 5. **Peripheral Reset:** The RCC may also reset various peripherals to their default state. This includes disabling peripheral clocks to save power and resetting any peripheral-specific configurations.
+>
+> 6. **Restarting the CPU:** After the reset sequence is completed, and all relevant components are in their default state, the CPU begins execution again, typically starting from the reset vector. This is a specific memory address that contains the entry point of the program to be executed after a reset.
+>
+> 7. **Software Initialization:** Finally, after the hardware reset, the software (such as a bootloader or main application) will typically run some initialization routines to set up the system for normal operation. This may include re-configuring the clock system, initializing peripherals, setting up memory, and more.
+>
+> It's important to understand that the system clock is not usually stopped during a reset; it's more about reconfiguring and restarting the system in a controlled and predictable manner. The reset process is designed to bring the microcontroller to a known, stable state from which it can start or resume operation reliably.
+
+![image-20240115022134620](assets/image-20240115022134620.png)
+
+### 初始状态
+
+![image-20240115023043243](assets/image-20240115023043243.png)
+
+![image-20240115023748496](assets/image-20240115023748496.png)
+
+单片机上电后第一条代码执行Reset_Handler
+
+### 设置时钟
+
+![image-20240115030345512](assets/image-20240115030345512.png)
+
+#### 设置Flash
+
+![image-20240115030512338](assets/image-20240115030512338.png)
+
+![image-20240115030611690](assets/image-20240115030611690.png)
+
+![image-20240115031009047](assets/image-20240115031009047.png)
+
+#### 配置时钟树
+
+![image-20240115031648555](assets/image-20240115031648555.png)
+
+![image-20240115032348613](assets/image-20240115032348613.png)
+
+![image-20240115032331328](assets/image-20240115032331328.png)
+
+![image-20240115032928668](assets/image-20240115032928668.png)
+
+![image-20240115033257990](assets/image-20240115033257990.png)
+
+#### 代码
+
+```c
+int main(void) {
+    // 设置Flash
+    FLASH_PrefetchBufferCmd(FLASH_PrefetchBuffer_Enable);
+    FLASH_SetLatency(FLASH_Latency_2);
+    
+    // 开启HSE
+    RCC_HSEConfig(RCC_HSE_ON);
+    while(RCC_GetFlagStatus(RCC_FLAG_HSERDY) == RESET);
+    
+    // 配置锁相环
+    RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_PLLMul_9);
+    RCC_PLLCmd(Enable);
+    while(RCC_GetFlagStatus(RCC_FLAG_PLLRDY) == RESET);
+    
+    // 配置SYSCLK
+    RCC_SYSConfig(RCC_SYSCLKSource_PLLCLK);
+    
+    // 配置分频器
+    RCC_HCLKConfig(RCC_SYSCLK_Div1);
+    RCC_PCLK1Config(RCC_HCLK_Div2);
+    RCC_PCLK2Config(RCC_HCLK_Div1);
+    
+    // 关闭HSI
+    RCC_HSICmd(DISABLE);
+}
+```
+
+## CAN模块
+
+![image-20240115034636666](assets/image-20240115034636666.png)
+
+![image-20240115034803731](assets/image-20240115034803731.png)
+
+![image-20240115034953286](assets/image-20240115034953286.png)
+
+![image-20240115035210186](assets/image-20240115035210186.png)
+
+![image-20240116043755647](assets/image-20240116043755647.png)
+
+![image-20240116054348391](assets/image-20240116054348391.png)
+
+## DMA
+
+![image-20240115043708360](assets/image-20240115043708360.png)
