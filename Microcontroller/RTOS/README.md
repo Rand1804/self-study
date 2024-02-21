@@ -312,3 +312,6 @@ EventBits_t xEventGroupWaitBits( const EventGroupHandle_t xEventGroup,
 ![image-20240204033553306](assets/image-20240204033553306.png)
 
 ![image-20240204034628635](assets/image-20240204034628635.png)
+
+## Chapter 9 Task Notifications
+
