@@ -1743,3 +1743,236 @@ int main(void) {
 ![image-20240226054718221](assets/image-20240226054718221.png)
 
 SCL为低电平时，发送方准备数据，此时SDA电压可以变化；当**SCL为高电平**时，接收方采集数据，**SDA**上的电平**不能变化**。
+
+### 数据帧格式
+
+![image-20240226212638199](assets/image-20240226212638199.png)
+
+![image-20240226212943297](assets/image-20240226212943297.png)
+
+此时SDA电路所有开关都断开
+
+![image-20240226213317551](assets/image-20240226213317551.png)
+
+在SCL为高电平1时，正常情况下SDA不应该变化，此时故意变化，用**下降沿**表示起始位，**上升沿**表示停止位。
+
+此时主机SDA开关闭合，所有从机开关不变
+
+![image-20240226220721911](assets/image-20240226220721911.png)
+
+![image-20240226221711571](assets/image-20240226221711571.png)
+
+全程主机发送，从机应答
+
+![image-20240226222318528](assets/image-20240226222318528.png)
+
+数据段从机发送，主机应答（在读(1)的情况下，主机收，从机发，所以数据段由主机发ACK应答）
+
+在最后一个数据字节后主机发送**NAK**（高电平）而不是ACK（低电平），表示**后面的数据我就不收了**
+
+## I2C模块
+
+![image-20240226222948745](assets/image-20240226222948745.png)
+
+![image-20240226223104694](assets/image-20240226223104694.png)
+
+### 寄存器组
+
+![image-20240226224648169](assets/image-20240226224648169.png)把TDR和一个移位寄存器构成的电路叫作**双缓冲电路**，可以实现串行转并行，或者并行转串行
+
+### OLED显示实验
+
+![image-20240226225910217](assets/image-20240226225910217.png)
+
+![image-20240226230032330](assets/image-20240226230032330.png)
+
+##### 初始化
+
+![image-20240226231609442](assets/image-20240226231609442.png)
+
+1. 初始化IO：初始化两根线为**开漏模式**
+
+   ![image-20240226231956362](assets/image-20240226231956362.png)
+
+![image-20240226232135312](assets/image-20240226232135312.png)
+
+该单片机的I2C通讯最高支持**快速模式（Fm）**，所以它的最大速率为400k,所以速度设置为2M就够用了，这里留一点余量
+
+因为引脚是给片上外设使用的，且为开漏模式，所以`GPIO_Mode_AF_OD`
+
+![image-20240226233025228](assets/image-20240226233025228.png)
+
+由于I2C的硬件设计有BUG,所以**首次使用必须进行复位**，否则将无法工作
+
+![image-20240227013053671](assets/image-20240227013053671.png)
+
+无法直接设置所使用的模式，只能通过设置波特率来间接控制，当设置的波特率小于等于100k时，使用标准模式，100k-400k使用快速模式
+
+**I2C_DutyCycle**:仅在快速模式下有效，可以控制时钟方波的占空比。I2C_DutyCycle_2,2比1模式，低电平占2份，高电平占1份。I2C_DutyCycle_16_9,低电平占16份，高电平占9份。没有硬性要求的情况下，一般选择2比1的模式。
+
+![image-20240227014507418](assets/image-20240227014507418.png)
+
+##### 数据发送
+
+![image-20240227015303906](assets/image-20240227015303906.png)
+
+![image-20240227015319529](assets/image-20240227015319529.png)
+
+![image-20240227015419463](assets/image-20240227015419463.png)
+
+![image-20240227015544239](assets/image-20240227015544239.png)
+
+![image-20240227015815928](assets/image-20240227015815928.png)
+
+![image-20240227015846086](assets/image-20240227015846086.png)
+
+![image-20240227020453393](assets/image-20240227020453393.png)
+
+在使用AF之前，一定要对AF进行清零
+
+![image-20240227020909778](assets/image-20240227020909778.png)
+
+![image-20240227023524410](assets/image-20240227023524410.png)
+
+stm32中的I2C模块有这样的规定，在收发数据之前，一定要把**ADDR清零**（**先读SR1,再读SR2**就可以把ADDR标志位清零，硬件设计如此）
+
+![image-20240227024154686](assets/image-20240227024154686.png)
+
+![image-20240227023050322](assets/image-20240227023050322.png)
+
+![image-20240227025009119](assets/image-20240227025009119.png)
+
+```c
+static void App_I2C_Init(void)
+{
+    // #1.Initization SCL and SDA
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+    
+    GPIO_InitTypeDef GPIO_InitStruct;
+    GPIO_InitStruct.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
+    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF_OD;
+    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_10MHZ;
+    GPIO_Init(GPIOB, &GPIO_InitStruct);
+    
+    // #2.Open the clock of I2C and reset
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
+    RCC_APB1PeriphResetCmd(RCC_APB1Periph_I2C1, ENABLE);
+    RCC_APB1PeriphResetCmd(RCC_APB1Periph_I2C1, DISABLE);
+    
+    // #3.Config I2C
+    I2C_InitTypeDef I2C_InitStruct;
+    I2C_InitStruct.I2C_Mode = I2C_Mode_I2C;
+    I2C_InitStruct.I2C_ClockSpeed = 400000;
+    I2C_InitStruct.I2C_DutyCycle = I2C_DutyCycle_2;
+    I2C_Init(I2C1, &I2C_InitStruct);
+    
+    // #4.Enable I2C
+    I2C_Cmd(I2C1, ENABLE);
+}
+
+static ErrorStatus App_I2C_MasterTransmit(uint8_t SlaveAddr, uint8_t *pData, uint16_t Size)
+{
+    ErrorStatus ret = SUCCESS;
+    
+    // #1.Wait for bus idle
+    while (I2C_GetFlagStatus(I2C1, I2C_FLAG_BUSY) == SET);
+    // #2.Generate START
+    I2C_GenerateSTART(I2C1, ENABLE);
+    while (I2C_GetFlagStatus(I2C1, I2C_FLAG_SB) == RESET);
+    
+    // #3.Send address
+    I2C_ClearFlag(I2C1, I2C_FLAG_AF);
+    I2C_SendData(I2C1, SlaveAddr & 0xfe);
+    // Wait for ADDR
+    while (I2C_GetFlagStatus(I2C1, I2C_FLAG_ADDR) == RESET) {
+        if (I2C_GetFlagStatus(I2C1, I2C_FLAG_AF) == SET) {
+            ret = ERROR;
+            goto STOP;
+        }
+    }
+    
+    // #4.Send Data
+    // Clear FLAG ADDR 
+    I2C_ReadRegister(I2C1, I2C_Register_SR1);
+    I2C_ReadRegister(I2C1, I2C_Register_SR2);
+    
+    for (uint32_t i = 0; i < Size; i++) {
+        // Wait for TXE
+        while (I2C_GetFlagStatus(I2C1, I2C_FLAG_TXE) == RESET) {
+            if (I2C_GetFlagStatus(I2C1, I2C_FLAG_AF) == SET) {
+                ret = ERROR;
+                goto STOP;
+            }
+    	}
+        I2C_SendData(I2C1, pData[i]);
+    }
+    // Wait for BTF
+    while (I2C_GetFlagStatus(I2C1, I2C_FLAG_BTF) == RESET) {
+        if (I2C_GetFlagStatus(I2C1, I2C_FLAG_AF) == SET) {
+            ret = ERROR;
+            goto STOP;
+        }
+    }
+    // #5.Send STOP
+STOP:
+    I2C_GenerateSTOP(I2C1, ENABLE);
+    while (I2C_GetFlagStatus(I2C1, I2C_FLAG_BUSY)) == SET);
+    
+    return ret;
+}
+```
+
+##### 数据接收
+
+![image-20240227025434068](assets/image-20240227025434068.png)
+
+最后一个数据位之后发送NAK来告诉从机不要发送数据了
+
+![image-20240227030707930](assets/image-20240227030707930.png)
+
+**BTF**标志位在发送数据时表示传输完成，接收数据时表示接收**两级缓冲区都满了**
+
+![image-20240227031023349](assets/image-20240227031023349.png)
+
+改变ACK仅影响正在接收或还未接收的数据，对已经接收的数据没有影响
+
+![image-20240227031346722](assets/image-20240227031346722.png)
+
+一定要在NAK之后立即发送STOP,否则会多接收一两个无用的字节
+
+![image-20240227031543534](assets/image-20240227031543534.png)
+
+![image-20240227032506311](assets/image-20240227032506311.png)
+
+```c
+static ErrorStatus App_I2C_MasterReceive(uint8_SlaveAddr, uint8_t *pDataOut, uint16_t Size)
+{
+    ErrorStatus ret = SUCCESS;
+    
+    // #1.Wait for bus idle
+    while (I2C_GetFlagStatus(I2C1, I2C_FLAG_BUSY) == SET);
+    
+    // #2.Send START
+    I2C_GenerateSTART(I2C1, ENABLE);
+    while (I2C_GetFlagStatus(I2C1, I2C_FLAG_SB) == RESET);
+    
+    // #3.Send address
+    I2C_ClearFlag(I2C1, I2C_FLAG_AF);
+    I2C_SendData(I2C1, SlaveAddr | 0x01);
+    // Wait for ADDR
+    while (I2C_GetFlagStatus(I2C1, I2C_FLAG_ADDR) == RESET) {
+        if (I2C_GetFlagStatus(I2C1, I2C_FLAG_AF) == SET) {
+            ret = ERROR;
+            goto STOP;
+        }
+    }
+    
+    // #5.Send STOP
+STOP:
+    I2C_GenerateSTOP(I2C1, ENABLE);
+    while (I2C_GetFlagStatus(I2C1, I2C_FLAG_BUSY)) == SET);
+    
+    return ret;
+}
+```
+
