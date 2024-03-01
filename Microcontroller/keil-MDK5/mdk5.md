@@ -141,3 +141,130 @@ DSP扩展单元主要增加了一些DSP指令，算法比如FIR，FFR,IIR,FFT等
 > 因为ARM是授权给每个芯片厂商IP核，授权之后每个芯片厂商在他这个IP核的基础之上做自己的外设。而且他这个IP核也不是原封不动的直接用，IP核也是可以裁剪的，还可以在这个IP核的基础之上做一定的修改。如果说大家使用了不同的芯片厂商的Cortex-M内核，比如都用的M3内核，可以认为这些IP核他们内核一样的，基本上做一些内核的操作基本上都是兼容的。稍微有一些区别，大部分都是兼容的。这个就是CMSIS优势，深入到内核层之后，更换其他厂商也能兼容。
 
 ![image-20240228224853051](assets/image-20240228224853051.png)
+
+## 启动代码
+
+> 启动时cortex-M3内核处于handler mode
+
+![image-20240229212544131](assets/image-20240229212544131.png)
+
+![image-20240229212604204](assets/image-20240229212604204.png)
+
+![img](file:////home/wuwt/.config/QQ/nt_qq_a9857fa024784cc354f8fd820a995956/nt_data/Pic/2024-02/Ori/3bd08786f467b0622ab3d34079968e40.png)
+
+![img](file:////home/wuwt/.config/QQ/nt_qq_a9857fa024784cc354f8fd820a995956/nt_data/Pic/2024-02/Ori/a75b39a354750b9685f8aa8379a8042a.png)
+
+![image-20240229213542041](assets/image-20240229213542041.png)
+
+![image-20240229215244320](assets/image-20240229215244320.png)
+
+> 如果使用了微库，则将`__initial_sp`,`__heap_base`,`__heap_limit`三个标签地址暴露给`__main`函数调用。如果没有使用微库，则是使用的C标准库，则使用`ELSE`到`END`部分代码
+
+## Boot启动方式
+
+![image-20240229215823323](assets/image-20240229215823323.png)
+
+![image-20240229220842516](assets/image-20240229220842516.png)
+
+![image-20240229221540758](assets/image-20240229221540758.png)
+
+![image-20240229222310435](assets/image-20240229222310435.png)
+
+> system memory:出厂前，STM32芯片里面内嵌了一个bootloader
+
+![image-20240229223233818](assets/image-20240229223233818.png)
+
+![image-20240229223342279](assets/image-20240229223342279.png)
+
+![image-20240229223728953](assets/image-20240229223728953.png)
+
+![image-20240229231511362](assets/image-20240229231511362.png)
+
+![image-20240229231851603](assets/image-20240229231851603.png)
+
+![image-20240229232011971](assets/image-20240229232011971.png)
+
+> 从SRAM启动需要改四处配置：
+>
+> 1. 更改启动地址为0x2000_0000
+> 2. 添加宏定义`VECT_TAB_SRAM`
+> 3. 添加`./CpuRAM.ini`配置文件，因为我们的开发板不支持上电在SRAM中启动
+> 4. 取消`target->utilities->Use Debug Driver and Update Target before Debugging`,因为不需要把程序下载到Flash里面
+>
+> `0xE000_ED08`为cortex内核的一个寄存器，通过这个寄存器就可以设置这个中断向量表的首地址
+
+![image-20240229232949077](assets/image-20240229232949077.png)
+
+> 在stm32 program manual编程手册中，有内核外设的介绍，其中就有中断向量表偏移寄存器
+
+![image-20240301013836883](assets/image-20240301013836883.png)
+
+![image-20240301013819412](assets/image-20240301013819412.png)
+
+> 该宏定义在`SystemInit()`函数中
+
+![image-20240301014927134](assets/image-20240301014927134.png)
+
+> **Wath is ISP?**
+>
+> ISP stands for In-System Programming. It is a technique used in the field of embedded systems for programming the non-volatile memory (usually Flash memory) of microcontrollers and other programmable devices after they have been installed or assembled into a system. This allows for the firmware of the device to be upgraded or modified without needing to remove the microcontroller from its circuit.
+>
+> ### Key Features of ISP:
+>
+> - **Convenience:** Firmware updates can be performed directly on the final product, eliminating the need to remove the device's microcontroller or other components for programming.
+> - **Flexibility:** Allows for easy application updates, bug fixes, and feature enhancements to be deployed after the product has been manufactured and distributed.
+> - **Cost-Effective:** Reduces the need for additional hardware for programming after assembly, lowering the overall production costs.
+> - **Recovery:** Enables the recovery of devices that have been bricked or are malfunctioning due to software issues.
+>
+> ### How ISP Works:
+>
+> 1. **Connection:** A connection is established between the microcontroller and a programmer or computer, often through standard interfaces like UART, SPI, I2C, USB, or even wireless protocols.
+> 2. **Bootloader:** The microcontroller needs to have a bootloader program in its memory. The bootloader is a small piece of code that runs on startup and decides whether to jump to the main application code or enter a programming mode.
+> 3. **Programming:** If the bootloader decides to enter programming mode (often determined by a specific signal or command), it then communicates with the external programmer to receive the new firmware and write it to the device's non-volatile memory.
+> 4. **Restart:** Once the programming is complete, the device is typically reset, and the new firmware starts running.
+>
+> ### Applications of ISP:
+>
+> - **Firmware Updates:** Deploying new firmware versions to fix bugs or add features.
+> - **Configuration:** Setting or modifying device parameters or settings stored in non-volatile memory.
+> - **Field Service:** Updating the firmware of devices deployed in the field without the need for specialized equipment or returning the device to the manufacturer.
+>
+> ISP is a critical feature for modern embedded systems, providing the flexibility and maintainability required for today's fast-paced and evolving technological landscape.
+
+![image-20240301015656095](assets/image-20240301015656095.png)
+
+> In the context of microcontrollers, UDS, IAP, WWDG, and IWDG refer to specific features and functionalities:
+>
+> ### UDS: Unified Diagnostic Services
+> UDS stands for Unified Diagnostic Services. It is a diagnostic communication protocol used in the automotive industry, defined by the international standard ISO 14229. UDS is used for diagnostic communication between a diagnostic tool (e.g., a tester) and the vehicle’s electronic control units (ECUs). It provides a standardized way to perform various diagnostic and reprogramming tasks such as reading and erasing error codes, retrieving real-time data, and updating the firmware of ECUs.
+>
+> ### IAP: In-Application Programming
+> IAP stands for In-Application Programming. It is a feature that allows a microcontroller to reprogram its own non-volatile memory (like Flash memory) while the application is running. This is often used to update the firmware of an embedded device in the field without the need for a dedicated programmer or bootloader. IAP can be initiated by the application itself or via communication protocols like UDS, allowing for updates over networks such as CAN, Ethernet, or even wireless.
+>
+> ### WWDG: Window Watchdog Timer
+> WWDG stands for Window Watchdog Timer, which is a hardware feature found in some microcontrollers, like those from STMicroelectronics. The WWDG is designed to reset the system in case of a malfunction, such as when the software becomes unresponsive or gets stuck in a loop. The "window" part of the WWDG refers to a timing window during which the watchdog must be refreshed (or "kicked") to prevent a system reset. If the watchdog is refreshed too early or too late (outside of this window), the WWDG will trigger a system reset.
+>
+> ### IWDG: Independent Watchdog Timer
+> IWDG stands for Independent Watchdog Timer. Similar to the WWDG, the IWDG is also a hardware feature used to reset the system if the software becomes unresponsive. However, unlike the WWDG, the IWDG typically runs off a separate clock source and is independent of the main system clock. This makes it more reliable in systems where the main clock might fail or become unstable. The IWDG does not have a window; it simply must be refreshed at regular intervals to prevent it from resetting the system.
+>
+> ### Comparison: WWDG vs IWDG
+> - **Clock Source:** WWDG usually runs on the system clock, whereas IWDG often has its own dedicated low-speed clock.
+> - **Window vs. Regular Kick:** WWDG requires service within a specific window, while IWDG needs regular kicking at any time before it times out.
+> - **Response to Clock Failure:** IWDG is more robust against system clock failure.
+> - **Use Cases:** WWDG is used when the timing of the application is critical, while IWDG is used for general system health monitoring.
+>
+> When choosing between WWDG and IWDG, it depends on the specific requirements of the application and the level of safety and robustness required. Some systems may even use both watchdogs in tandem for an additional layer of protection.
+
+![image-20240301032632284](assets/image-20240301032632284.png)
+
+![image-20240301033051542](assets/image-20240301033051542.png)
+
+![image-20240301033210015](assets/image-20240301033210015.png)
+
+![image-20240301033448913](assets/image-20240301033448913.png)
+
+## Boot更新固件
+
+![image-20240301043219531](assets/image-20240301043219531.png)
+
+> 设置分散加载的配置文件[https://www.armbbs.cn/forum.php?mod=viewthread&tid=109595]
