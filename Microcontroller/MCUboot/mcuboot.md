@@ -1,3 +1,5 @@
+## MCUboot v0.9(b6efee9: Bump to version 0.9.0)
+
 ```c
 struct flash_area {
     /**
@@ -211,7 +213,7 @@ struct image_trailer {
 
 offsetof(struct image_trailer, magic) 
 
-#确认是否有图像交换操作未完成
+#找到boot_status存储在哪个区，然后读取进行到哪个setor了
 boot_read_status(&bs);
 	->boot_status_source(void);
 		#读取分区的交换状态
@@ -224,5 +226,41 @@ boot_read_status(&bs);
 ### boot_copy_image()
 
 ```c
+/** Just boot whatever is in slot 0. */
+#define BOOT_SWAP_TYPE_NONE     1
+
+/** Swap to slot 1.  Absent a confirm command, revert back on next boot. */
+#define BOOT_SWAP_TYPE_TEST     2
+
+/** Swap to slot 1 permanently. */
+#define BOOT_SWAP_TYPE_PERM     3
+
+/** Swap back to alternate slot.  A confirm changes this state to NONE. */
+#define BOOT_SWAP_TYPE_REVERT   4
+
+/** Swap failed because image to be run is not valid */
+#define BOOT_SWAP_TYPE_FAIL     5
+
+/** Swapping encountered an unrecoverable error */
+#define BOOT_SWAP_TYPE_PANIC    0xff
+
+#define MAX_FLASH_ALIGN         8
+
+#define BOOT_STATUS_STATE_COUNT 3
+#define BOOT_STATUS_MAX_ENTRIES 128
+
+#define BOOT_STATUS_SOURCE_NONE    0
+#define BOOT_STATUS_SOURCE_SCRATCH 1
+#define BOOT_STATUS_SOURCE_SLOT0   2
+
+#define BOOT_FLAG_IMAGE_OK         0
+#define BOOT_FLAG_COPY_DONE        1
+
+#define BOOT_FLAG_SET              0x01
+#define BOOT_FLAG_UNSET            0xff
+#每次复制仅复制header,image,tlvs
+#如果之前的交换操作被中断，则继续交换
+boot_copy_image(&bs);
+->boot_swap_sectors(first_sector_idx, sz, bs);
 ```
 
