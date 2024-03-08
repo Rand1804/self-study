@@ -264,3 +264,16 @@ boot_copy_image(&bs);
 ->boot_swap_sectors(first_sector_idx, sz, bs);
 ```
 
+### 交换时
+
+- 交换状态0
+  - 擦除scratch区，复制image1过去，写入一个0x01
+- 交换状态1
+  - 擦除image1区，复制image0过去，向前写入一个0x01
+- 交换状态2
+  - 擦除image0区，复制scrathc过去，向前写入一个0x01
+
+当是第一次交换，且image比较大，使用了slot0的最后一个块（用来存储trailer的位置），则将use_scratch置为1
+
+- 交换状态0
+  - 如果是第一次交换，且使用scratch区，则初始化
