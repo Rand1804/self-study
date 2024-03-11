@@ -276,4 +276,10 @@ boot_copy_image(&bs);
 当是第一次交换，且image比较大，使用了slot0的最后一个块（用来存储trailer的位置），则将use_scratch置为1
 
 - 交换状态0
-  - 如果是第一次交换，且使用scratch区，则初始化
+  - 如果是第一次交换，且使用scratch区，则将magic段写入scratch区的最底部。如果不使用scratch区，则将magic和image_ok段写入slot0底部
+- 交换状态1
+  - 如果是第一次交换，且不使用scratch区，则擦除slot1最后一个分区
+- 交换状态2
+  - 如果使用了scratch区，则将scratch区的image_ok,magic,one status写入slot0
+
+> swap status 从trailer区的顶部向下写，magic,image_ok,copy_done,从底部向上写
