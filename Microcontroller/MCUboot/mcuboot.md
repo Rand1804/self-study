@@ -283,3 +283,28 @@ boot_copy_image(&bs);
   - 如果使用了scratch区，则将scratch区的image_ok,magic,one status写入slot0
 
 > swap status 从trailer区的顶部向下写，magic,image_ok,copy_done,从底部向上写
+
+
+
+## MCUboot v1.0(b698418: Bump to version 1.0.0)
+
+```c
+/** Attempt to boot the contents of slot 0. */
+#define BOOT_SWAP_TYPE_NONE     1
+
+/** Swap to slot 1.  Absent a confirm command, revert back on next boot. */
+#define BOOT_SWAP_TYPE_TEST     2
+
+/** Swap to slot 1, and permanently switch to booting its contents. */
+#define BOOT_SWAP_TYPE_PERM     3
+
+/** Swap back to alternate slot.  A confirm changes this state to NONE. */
+#define BOOT_SWAP_TYPE_REVERT   4
+
+/** Swap failed because image to be run is not valid */
+#define BOOT_SWAP_TYPE_FAIL     5
+
+/** Swapping encountered an unrecoverable error */
+#define BOOT_SWAP_TYPE_PANIC    0xff
+```
+

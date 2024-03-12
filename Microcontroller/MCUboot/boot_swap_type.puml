@@ -1,0 +1,39 @@
+@startuml swap_type
+
+package swap_type {
+    object none {
+        
+    }
+
+    object test {
+        + magic_slot1: good
+        + image_ok_slot1: 0xff
+    }
+
+    object perm {
+        + magic_slot1: good
+        + image_ok_slot1: 0x01
+    }
+
+    object revert {
+        + magic_slot0: good
+        + magic_slot1: unset
+        + image_ok_slot0: 0xff
+        + copy_done_slot0: 0x01
+    }
+
+    object fail {
+        
+    }
+
+    object panic {
+        
+    }
+}
+
+
+
+
+
+
+@enduml

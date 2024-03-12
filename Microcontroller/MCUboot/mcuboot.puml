@@ -1,0 +1,47 @@
+@startuml mcuboot
+title 获取启动地址
+
+    (*) --> "扫描所有扇区信息"
+    note right
+    读取扇区个数，头文件，最小对齐字节，
+    各扇区信息
+    end note
+
+
+    if “需要交换image" then
+        -->[true] "交换image"
+        if "之前的交换操作被中断" then
+            -->[true] "完成剩余的交换操作"
+            --> "推断之前的交换类型"
+        else
+            -->[false] "推断交换类型"
+            if "要使用slot1“ then
+                -->[true] "校验slot1 image"
+                note left
+                swap_type:
+                test perm revert
+                end note
+                --> "交换image "
+                --> ===INV_1===
+            else
+                -->[false] "使用slot0"
+                --> ===INV_1===
+            endif
+            if revert or fail then
+                --> [true] "设置slot0 image_ok"
+                --> ===INV_2===
+            else 
+                --> [false] "不做任何处理"
+                --> ===INV_2===
+            endif
+            ===INV_2===-left-> "BOOT_SWAP_TYPE_NONE"
+            ===INV_2===-right-> "test | perm | revert"
+
+                
+        endif
+    else
+        -->[false] "不交换image"
+        --> ===INV_END===
+        --> ”永远从slot0启动“
+    endif
+@enduml
