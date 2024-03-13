@@ -11,10 +11,10 @@ title 获取启动地址
     if “需要交换image" then
         -->[true] "交换image"
         if "之前的交换操作被中断" then
-            -->[true] "完成剩余的交换操作"
+            -->[flase] "完成剩余的交换操作"
             --> "推断之前的交换类型"
         else
-            -->[false] "推断交换类型"
+            -->[true] "推断交换类型"
             if "要使用slot1“ then
                 -->[true] "校验slot1 image"
                 note left
@@ -34,9 +34,9 @@ title 获取启动地址
                 --> [false] "不做任何处理"
                 --> ===INV_2===
             endif
-            ===INV_2===-left-> "BOOT_SWAP_TYPE_NONE"
-            ===INV_2===-right-> "test | perm | revert"
-
+            ===INV_2===-left-> "test | perm | revert | fail"
+            ===INV_2===-right-> "none"
+            ===INV_2===-down-> "panic"
                 
         endif
     else

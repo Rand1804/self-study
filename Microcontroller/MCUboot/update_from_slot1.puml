@@ -1,0 +1,13 @@
+@startuml update from slot1
+
+    skinparam backgroundColor #EEEBDC
+
+    participant boot_go
+
+(*) --> boot_go(struct boot_rsp *rsp)
+    --> boot_read_sectors()
+    --> boot_read_image_headers()
+
+
+
+@enduml

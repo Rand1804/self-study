@@ -31,6 +31,35 @@ package swap_type {
     }
 }
 
+package boot_source {
+    object source_none {
+        + bst_magic_slot0: good
+        + bst_copy_done_slot0: 0x01
+    }
+
+    object source_slot0 {
+        + bst_magic_slot0: good
+        + bst_copy_done_slot0: 0xff
+    }
+
+    object source_scratch {
+        + bst_magic_scratch: good
+    }
+
+    object source_slot0_ {
+        + bst_magic_slot0: unset
+        + bst_copy_done_slot0: 0xff
+    }
+
+    object fail {
+        
+    }
+
+    object panic {
+        
+    }
+}
+
 
 
 
