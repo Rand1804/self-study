@@ -264,3 +264,13 @@ boot_copy_image(&bs);
 ->boot_swap_sectors(first_sector_idx, sz, bs);
 ```
 
+idx = 2
+img_off = 8k
+
+sz = 8k
+status for all sectors 128 * 3 *8
+
+copy_done 8
+image_ok 8
+magic 16
+trailer_sz = 3104
