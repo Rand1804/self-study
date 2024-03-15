@@ -1,0 +1,30 @@
+@startuml update_from_slot1
+
+
+
+
+package "boot_go" {
+
+  class boot_read_sectors {
+    + 读取slot0、slot1、scratch的扇区布局
+  }
+  class boot_read_image_headers {
+    + 读取slot0、slot1、scratch的image header
+  }
+  
+}
+
+
+package "boot_swap_if_needed" {
+    class boot_read_status
+}
+
+
+
+boot_go --> boot_swap_if_needed : calls with data
+
+
+
+
+
+@enduml
