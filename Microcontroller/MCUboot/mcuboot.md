@@ -318,3 +318,15 @@ copy_done 8
 image_ok 8
 magic 16
 trailer_sz = 3104
+
+## trailer的三个标志
+
+- magic
+
+- image_ok
+  - 在app中通过boot_set_pending(1)和boot_set_confirmed()设置为1
+  - 在交换步骤3,如果使用了scratch来暂存trailer数据，则将这些状态数据都复制到slot0(image_ok,swap_size,magic)
+
+- copy_done
+  - 仅在boot_go完成交换后(test\perm\revert)设置为1
+
