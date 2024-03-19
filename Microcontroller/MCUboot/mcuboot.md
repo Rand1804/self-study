@@ -322,10 +322,15 @@ trailer_sz = 3104
 ## trailer的三个标志
 
 - magic
+  - 在app中调用boot_set_pending
+
+  - 交换时(初始化状态分区时或使用了scratch时)
 
 - image_ok
   - 在app中通过boot_set_pending(1)和boot_set_confirmed()设置为1
-  - 在交换步骤3,如果使用了scratch来暂存trailer数据，则将这些状态数据都复制到slot0(image_ok,swap_size,magic)
+  - 在交换步骤3,如果使用了scratch来暂存trailer数据，则将这些状态数据都复制到slot0(image_ok,swap_size,magic)和一条交换信息
+  - 在交换步骤1在初始化状态分区时，将原本image1分区的信息复制过去(magic,image_ok,swap_size)
+  - 在没有交换时，如果状态为失败或恢复，设为1
 
 - copy_done
   - 仅在boot_go完成交换后(test\perm\revert)设置为1
