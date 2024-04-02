@@ -159,3 +159,14 @@ Debug一般不用管，仅在调试状态下占用字节。Object Totals已经�
 > - Remember, the stack high water mark provides a snapshot of the lowest point of unused stack space, which is invaluable for optimizing stack sizes based on actual application behavior.
 > - Always account for the possibility of future changes to tasks' stack usage due to code modifications, and maintain a safety margin to avoid stack overflows.
 > - Be mindful that the high water mark function may not account for all stack usage scenarios, especially in interrupt contexts, so it's wise to use this tool as part of a broader strategy for managing task stack sizes.
+
+## HardFault
+
+![image-20240402055828930](assets/image-20240402055828930.png)
+
+![image-20240402033838933](assets/image-20240402033838933.png)
+
+![image-20240402034017862](assets/image-20240402034017862.png)
+
+![image-20240402034902532](assets/image-20240402034902532.png)
+
