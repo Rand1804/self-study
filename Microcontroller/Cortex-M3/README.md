@@ -396,10 +396,11 @@ There are two segments of the private peripheral bus:
 
 ## Chapter 6 Cortex-M3 Implementation Overview
 
-In executing a branch instruction, the pipeline will be flushed. The processor will have to fetch
-instructions from the branch destination to fill up the pipeline again. However, the Cortex-
-M3 processor supports a number of instructions in v7-M architecture, so some of the short-
-distance branches can be avoided by replacing them with conditional execution codes.
+Program Counter always add 4 bytes
+
+
+
+In executing a branch instruction, the pipeline will be flushed. The processor will have to fetch instructions from the branch destination to fill up the pipeline again. However, the Cortex-M3 processor supports a number of instructions in v7-M architecture, so some of the short-distance branches can be avoided by replacing them with conditional execution codes.
 
 ![image-20240130052616846](assets/image-20240130052616846.png)
 
