@@ -13,9 +13,12 @@ The resulting packages of information, known as **packets** in the jargon of com
 
 Both types of switches forward packets toward their ultimate destinations. Link-layer switches are typically used in **access networks**, while routers are typically used in the **network core**. The sequence of communication links and packet switches traversed by a packet from the sending end system to the receiving end system is known as a **route or path** through the network.
 
+### ISP & IXP
 
+![image-20240511225616091](assets/image-20240511225616091.png)
 
-### 1.5 Protocol Layers
+- **ISP**: An internet service provider (ISP) is **a company that provides access to the internet**. 
+- **IXP**: An Internet exchange point (IXP) is **a physical location through which Internet infrastructure companies such as Internet Service Providers (ISPs) and CDNs connect with each other**.1.5 Protocol Layers
 
 ![image-20240425002531282](assets/image-20240425002531282.png)
 
@@ -259,3 +262,58 @@ For a example:
 > In this manner, the Amazon server is able to track Susan’s activity at the Amazon site. Although the Amazon Web site does not necessarily know Susan’s name, it knows exactly which pages user 1678 visited, in which order, and at what times! Amazon uses cookies to provide its shopping cart service—Amazon can maintain a list of all of Susan’s intended purchases, so that she can pay for them collectively at the end of the session.
 >
 > If Susan returns to Amazon’s site, say, one week later, her browser will continue to put the header line Cookie: 1678 in the request messages. Amazon also recommends products to Susan based on Web pages she has visited at Amazon in the past. If Susan also registers herself with Amazon—providing full name, e-mail address, postal address, and credit card information—Amazon can then include this information in its database, thereby associating Susan’s name with her identification number (and all of the pages she has visited at the site in the past!). This is how Amazon and other e-commerce sites provide “one-click shopping”—when Susan chooses to purchase an item during a subsequent visit, she doesn’t need to re-enter her name, credit card number, or address.
+
+### 2.2.5 Web Caching
+
+A **Web cache**—also called a **proxy server**—is a network entity that satisfies HTTP requests on the behalf of an origin Web server. The Web cache has its own disk storage and keeps copies of recently requested objects in this storage.
+
+![image-20240511225132144](assets/image-20240511225132144.png)
+
+- The browser establishes a TCP connection to the Web cache and sends an HTTP request for the object to the Web cache.
+- The Web cache checks to see if it has a copy of the object stored locally. If it does, the Web cache returns the object within an HTTP response message to the client browser.
+- If the Web cache does not have the object, the Web cache opens a TCP connection to the origin server, that is, to www.someschool.edu . The Web cache then sends an HTTP request for the object into the cache-to-server TCP connection. After receiving this request, the origin server sends the object within an HTTP response to the Web cache. 
+- When the Web cache receives the object, it stores a copy in its local storage and sends a copy, within an HTTP response message, to the client browser (over the existing TCP connection between the client browser and the Web cache).
+
+Web caching has seen deployment in the Internet for **two reasons**.
+
+- First, a Web cache can substantially reduce the response time for a client request, particularly if the bottleneck bandwidth between the client and the origin server is much less than the bottleneck bandwidth between the client and the cache. If there is a high-speed connection between the client and the cache, as there often is, and if the cache has the requested object, then the cache will be able to deliver the object rapidly to the client.
+- Second, as we will soon illustrate with an example, Web caches can substantially reduce traffic on an institution’s access link to the Internet. By reducing traffic, the institution (for example, a company or a university) does not have to upgrade bandwidth as quickly, thereby reducing costs. Furthermore, Web caches cansubstantially reduce Web traffic in the Internet as a whole, thereby improving performance for all applications.
+
+![image-20240511232016906](assets/image-20240511232016906.png)
+
+![image-20240511233007870](assets/image-20240511233007870.png)
+
+Through the use of **Content Distribution Networks (CDNs)**, Web caches are increasingly playing an important role in the Internet.
+
+#### The Conditional GET
+
+An HTTP request message is a so-called conditional GET message if 
+
+(1) the request message uses the **GET method** and 
+
+(2) the request message includes an **If-Modified-Since:** header line.
+
+```http
+GET /fruit/kiwi.gif HTTP/1.1
+Host: www.exotiquecuisine.com
+
+HTTP/1.1 200 OK
+Date: Sat, 3 Oct 2015 15:39:29
+Server: Apache/1.3.0 (Unix)
+Last-Modified: Wed, 9 Sep 2015 09:23:24
+Content-Type: image/gif
+(data data data data data ...)
+
+GET /fruit/kiwi.gif HTTP/1.1
+Host: www.exotiquecuisine.com
+If-modified-since: Wed, 9 Sep 2015 09:23:24
+
+HTTP/1.1 304 Not Modified
+Date: Sat, 10 Oct 2015 15:39:29
+Server: Apache/1.3.0 (Unix)
+(empty entity body)
+```
+
+We’ve also studied a bit of the Web’s application infrastructure, including **caches**, **cookies**, and **back-end databases**, all of which are tied in some way to the HTTP protocol.
+
+### 2.3 Electronic Mail in the Internet
