@@ -22,3 +22,5 @@ AlignConsecutiveMacros: Consecutive
 UseCRLF: false
 # Ensure opening brace for functions is on a new line
 BreakBeforeBraces: Stroustrup
+
+MaxEmptyLinesToKeep: 2
