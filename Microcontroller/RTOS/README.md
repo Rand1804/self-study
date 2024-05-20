@@ -315,3 +315,11 @@ EventBits_t xEventGroupWaitBits( const EventGroupHandle_t xEventGroup,
 
 ## Chapter 9 Task Notifications
 
+
+
+## 一些注意点总结
+- 关于Binary Semaphore和Mutex主要的不同点
+  - **初始状态**：Binary Semaphore初始值为1，Mutex初始值为0
+  - **优先级反转**：Mutex可通过配置freeRTOS参数实现优先级继承，Binary Semaphore没有这个功能
+  - **多次赋值**：Binary Semaphore可以多次Give，但是值始终为1.Mutex只可以被take的任务give，多次赋值可能报错或者产生未定义行为。xSemaphoreCreateRecursiveMutex()递归互斥可以被同一个任务多次take，并等量give。
+
