@@ -1,0 +1,36 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/include",
+                "/usr/local/include",
+                "/lib/modules/6.8.0-31-generic/build/include",
+                "/lib/modules/6.8.0-31-generic/build/arch/x86/include",
+                "/lib/modules/6.8.0-31-generic/build/arch/x86/include/generated"
+            ],
+            "defines": [
+                "__KERNEL__",
+                "MODULE"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-gcc-x64",
+            "browse": {
+                "path": [
+                    "${workspaceFolder}",
+                    "/usr/include",
+                    "/usr/local/include",
+                    "/lib/modules/6.8.0-31-generic/build/include",
+                    "/lib/modules/6.8.0-31-generic/build/arch/x86/include",
+                    "/lib/modules/6.8.0-31-generic/build/arch/x86/include/generated"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            }
+        }
+    ],
+    "version": 4
+}
