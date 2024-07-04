@@ -1,0 +1,55 @@
+# Debian12 安装
+
+## 修改下载源
+
+
+deb http://ftp.us.debian.org/debian/ bookworm main contrib non-free
+deb-src http://ftp.us.debian.org/debian/ bookworm main contrib non-free
+
+deb http://security.debian.org/debian-security bookworm-security main contrib non-free
+deb-src http://security.debian.org/debian-security bookworm-security main contrib non-free
+
+# bookworm-updates, previously known as 'volatile'
+deb http://ftp.us.debian.org/debian/ bookworm-updates main contrib non-free
+deb-src http://ftp.us.debian.org/debian/ bookworm-updates main contrib non-free
+
+## 赋予sudo权限
+sudo visudo
+username ALL=(ALL:ALL) ALL
+
+## 安装pinyin
+// sudo dpkg-reconfigure locales
+apt-get install fcitx5 fcitx5-pinyin
+接着在im-config(input method)中激活fcitx5作为输入方式
+然后打开fcitx5-configure，配置拼音输入法
+
+
+# 删除游戏
+sudo apt purge aisleriot five-or-more four-in-a-row gnome-chess hitori gnome-klotski gnome-mahjongg gnome-mines gnome-nibbles gnome-robots gnome-sudoku gnome-taquin gnome-tetravex iagno lightsoff quadrapassel swell-foop tali gnome-2048
+sudo apt autoremove
+
+## 更新软件
+sudo apt update
+
+更新所有包到最新版本
+sudo apt dist-upgrade
+
+## 安装flatpak
+sudo apt install flatpak gnome-software-plugin-flatpak
+sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+## 安装新版firefox
+sudo apt remove firefox-esr
+
+## 安装新版libreoffice
+sudo apt remove libreoffice-common libreoffice-core libreoffice-gnome libreoffice-gtk3 libreoffice-help-common libreoffice-help-en-us libreoffice-style-colibre libreoffice-style-elementary
+sudo apt autoremove
+
+## 安装 Thunderbird
+
+## 安装新版LibreOffice
+sudo apt remove libreoffice-common libreoffice-core libreoffice-gnome libreoffice-gtk3 libreoffice-help-common libreoffice-help-en-us libreoffice-style-colibre libreoffice-style-elementary
+
+## 配置Gnome system tray icons in Debian 12
+flatpak install flathub com.mattjakeman.ExtensionManager
+appindicator
