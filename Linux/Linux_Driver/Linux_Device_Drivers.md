@@ -2,7 +2,7 @@
 
 (Third Edition) Jonathan Corbet, Alessandro Rubini, and Greg Kroah-Hartman
 
-## 1.An Introduction to Device Drivers
+## Chapter 1.An Introduction to Device Drivers
 
 User activities are performed by means of a set of standardized calls that are independent of the specific driver; mapping those calls to device-specific operations that action real hardware is then the role of the device driver.
 
@@ -32,3 +32,13 @@ The distinction between **mechanism** and **policy** is one of the best ideas be
     different interface to the kernel than char drivers.
 - Network interfaces
 
+## Chapter 2: Building and Running Modules
+
+![image-20240707222905523](assets/image-20240707222905523.png)
+
+Unix transfers execution from user space to kernel space whenever an application issues a **system call** or is suspended by a **hardware interrupt**.
+
+- Kernel code executing a system call is working in the context of a process—it operates on behalf of the calling process and is able to access data in the process’s address space.
+- Code that handles interrupts, on the other hand, is asynchronous with respect to processes and is not related to any particular process.
+
+As a result, Linux kernel code, including driver code, must be **reentrant**—it must be capable of running in more than one context at the same time.
