@@ -1,0 +1,167 @@
+{
+  "main": {
+    "id": "77167e5a316d3bb7",
+    "type": "split",
+    "children": [
+      {
+        "id": "b54799e06187824e",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "98323c8456ea180a",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Operating_System/jyy_yyds/jyy.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "c89176d9db07099f",
+    "type": "split",
+    "children": [
+      {
+        "id": "b6d1c0c232decaa5",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "33a64cc73e34dca4",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "c5ce1756b4feb8a5",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "8bb8ce415adf0717",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 200
+  },
+  "right": {
+    "id": "e8b889e86351dbec",
+    "type": "split",
+    "children": [
+      {
+        "id": "e280669ef821ca09",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "2bdec768dfaea8fb",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Operating_System/jyy_yyds/jyy.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "e3a919672233cc6c",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Operating_System/jyy_yyds/jyy.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "86aece6ced9d03ff",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "794aada5b44b1573",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Operating_System/jyy_yyds/jyy.md"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "98323c8456ea180a",
+  "lastOpenFiles": [
+    "Operating_System/core.a.out.67900",
+    "Operating_System/a.out",
+    "Operating_System/test.c",
+    "Linux/Linux_Driver/Linux_Device_Drivers.md",
+    "Operating_System/jyy_yyds/jyy.md",
+    "Operating_System/jyy_yyds",
+    "Operating_System",
+    "Operation_System",
+    "C++/南方科技大学C++/README.md",
+    "Untitled.canvas",
+    "README.md",
+    "2024-07-08.md",
+    "Linux/Linux.md",
+    "Microcontroller/README.md",
+    "CS-340 Network/Computer_Network_A_Top-Down_Approach.md"
+  ]
+}

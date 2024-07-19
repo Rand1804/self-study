@@ -20,7 +20,7 @@ The distinction between **mechanism** and **policy** is one of the best ideas be
 
  Each module is made up of **object code** (not linked into a complete executable) that can be dynamically linked to the running kernel by the `insmod` program and can be unlinked by the `rmmod` program.
 
-![image-20240701165547351](Linux_Device_Drivers.assets/image-20240701165547351.png)
+![image-20240701165547351](assets/image-20240701165547351.png)
 
 ### Classes of Devices and Modules
 
