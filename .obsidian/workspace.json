@@ -11,12 +11,8 @@
             "id": "98323c8456ea180a",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Operating_System/jyy_yyds/jyy.md",
-                "mode": "source",
-                "source": false
-              }
+              "type": "empty",
+              "state": {}
             }
           }
         ]
@@ -85,7 +81,6 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Operating_System/jyy_yyds/jyy.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +97,6 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Operating_System/jyy_yyds/jyy.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -124,9 +118,7 @@
             "type": "leaf",
             "state": {
               "type": "outline",
-              "state": {
-                "file": "Operating_System/jyy_yyds/jyy.md"
-              }
+              "state": {}
             }
           }
         ]
@@ -148,14 +140,31 @@
   },
   "active": "98323c8456ea180a",
   "lastOpenFiles": [
-    "Operating_System/core.a.out.67900",
-    "Operating_System/a.out",
-    "Operating_System/test.c",
+    "Operating_System/Operating System of Nanjing University /sample/cv-sem/cv.c",
+    "Operating_System/Operating System of Nanjing University /sample/cv-sem/README.md",
+    "Operating_System/Operating System of Nanjing University /sample/cv-sem/Makefile",
+    "Operating_System/Operating System of Nanjing University /sample/cv-sem/index.html.tmp",
+    "Operating_System/Operating System of Nanjing University /sample/cv-sem",
+    "Operating_System/Operating System of Nanjing University /sample/pc-sem/pc.c",
+    "Operating_System/Operating System of Nanjing University /sample/pc-sem/README.md",
+    "Operating_System/Operating System of Nanjing University /sample/pc-sem/Makefile",
+    "Operating_System/Operating System of Nanjing University /sample/pc-sem/index.html.tmp",
+    "Operating_System/Operating System of Nanjing University /sample/pc-sem",
+    "Operating_System/Operating System of Nanjing University /sample/sync/sync.c",
+    "Operating_System/Operating System of Nanjing University /sample/sync/gen-notes.py",
+    "Operating_System/Operating System of Nanjing University /sample/sync/README.md",
+    "Operating_System/Operating System of Nanjing University /sample/sync/Makefile",
+    "Operating_System/Operating System of Nanjing University /sync/README.md",
+    "Operating_System/Operating System of Nanjing University /sample/producer-consumer/README.md",
+    "Operating_System/Operating System of Nanjing University /sample/spinlock/README.md",
+    "Operating_System/Operating System of Nanjing University /producer-consumer/README.md",
+    "Operating_System/Operating System of Nanjing University /spinlock/README.md",
+    "Operating_System/Operating System of Nanjing University /sample/graph/README.md",
+    "Operating_System/Operating System of Nanjing University /sample/fish/README.md",
+    "Operating_System/南大操作系统/jyy.md",
+    "Operating_System/Operating System of Nanjing University /jyy.md",
     "Linux/Linux_Driver/Linux_Device_Drivers.md",
     "Operating_System/jyy_yyds/jyy.md",
-    "Operating_System/jyy_yyds",
-    "Operating_System",
-    "Operation_System",
     "C++/南方科技大学C++/README.md",
     "Untitled.canvas",
     "README.md",
