@@ -1976,3 +1976,171 @@ STOP:
 }
 ```
 
+## SPI 模块
+
+### 电路i结构和通讯协议
+
+##### SPI总线的电路结构
+
+![image-20241024234224701](assets/image-20241024234224701.png)
+
+> **N**代表Negative,表示低电压有效
+
+##### 通讯流程及波形
+
+![image-20241025015712316](assets/image-20241025015712316.png)
+
+主机发送多少数据,从机就会返回多少数据,这也是SPI通讯的一个特点
+
+##### 参数1:时钟信号的极性和相位
+
+![image-20241025020009094](assets/image-20241025020009094.png)
+
+在空闲状态下,如果时钟信号为低电压,就是低极性.如果时钟信号为高电压,就是高极性.
+
+![image-20241025020909418](assets/image-20241025020909418.png)
+
+##### SPI的四种模式
+
+![image-20241025021241679](assets/image-20241025021241679.png)
+
+##### 参数2: 比特位的传输顺序
+
+![image-20241025021548591](assets/image-20241025021548591.png)
+
+##### 参数3: 数据宽度
+
+![image-20241025021701698](assets/image-20241025021701698.png)
+
+### IO引脚初始化
+
+##### 1. SPI模块简介
+
+![image-20241025023542433](assets/image-20241025023542433.png)
+
+##### 2. W25Q64简介
+
+一种Flash芯片(SPI)
+
+![image-20241025023903588](assets/image-20241025023903588.png)
+
+![image-20241025024243278](assets/image-20241025024243278.png)
+
+##### 3. 定位SPI的引脚位置
+
+![image-20241025024513687](assets/image-20241025024513687.png)
+
+![image-20241025024706887](assets/image-20241025024706887.png)
+
+![image-20241025024939216](assets/image-20241025024939216.png)
+
+##### 4. 选择IO引脚的模式
+
+![image-20241025030020199](assets/image-20241025030020199.png)
+
+##### 5. 选择IO的最大输出速度
+
+**原则:**选择满足需求的最小值.对于单片机来说,有3个输出速度可选,分别为2M, 10M, 50M. 需要查看W25Q64的参考手册,
+
+![image-20241025030632286](assets/image-20241025030632286.png)
+
+该芯片最大支持80MHz,但是我们当前使用的是面包版连接,不是很稳定,所以最好不要选这么高的频率. 保险起见,此次实验时钟频率选择1MHz, 芯片最大输出速率选2MHz就可以了.
+
+![image-20241025031029124](assets/image-20241025031029124.png)
+
+##### 7. spi gpio初始化代码
+
+```c
+void app_spi1_gpio_init()
+{
+    GPIO_InitTypeDef gpio_init;
+    
+    // #1. 初始化IO引脚
+    RCC_APB2PeriphClockCMD(RCC_APB2Periph_AFIO, ENABLE);
+    GPIO_PinRemapConfig(GPIO_Remap_SPI1, ENABLE);
+    
+    // PB3 SCK_AF_PP 2MHz
+    RCC_APB2PeriphClockCMD(RCC_APB2Periph_GPIOB, ENABLE);
+    RCC_APB2PeriphClockCMD(RCC_APB2Periph_GPIOA, ENABLE);
+    
+    gpio_init.GPIO_Pin = GPIO_Pin_3;
+    gpio_init.GPIO_Mode = GPIO_Mode_AF_PP;
+    gpio_init.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_Init(GPIOB, &gpio_init);
+    
+    // PB4 MISO IPU
+    gpio_init.GPIO_Pin = GPIO_Pin_4;
+    gpio_init.GPIO_Mode = GPIO_Mode_IPU;
+    GPIO_Init(GPIOB, &gpio_init);
+    
+    // PB5 MOSI AF_PP
+    gpio_init.GPIO_Pin = GPIO_Pin_5;
+    gpio_init.GPIO_Mode = GPIO_Mode_AF_PP;
+    gpio_init.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_Init(GPIOB, &gpio_init);
+    
+    // PA15 普通IO Out_PP 2MHz
+    gpio_init.GPIO_Pin = GPIO_Pin_15;
+    gpio_init.GPIO_Mode = GPIO_Mode_Out_PP;
+    gpio_init.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_Init(GPIOA, &gpio_init);
+    
+}
+```
+
+
+
+### SPI模块的初始化
+
+##### 1.SPI模块的基本工作原理
+
+![image-20241025034508018](assets/image-20241025034508018.png)
+
+> 发送寄存器负责缓存要发送的数据, 下面的小圆圈代表移位寄存器,负责实际的发送工作. 数据首先写入发送寄存器, 然后搬进移位寄存器, 一bit一bit的依次发送.接受数据时,数据首先放入移位寄存器,一bit一bit的写入,写入到完整的16bit后, 一次性移入接收缓存寄存器, 并触发收到数据中断, cpu或dma收到数据后读取. 
+
+##### 2. SPI_Init
+
+![image-20241025035841673](assets/image-20241025035841673.png)
+
+##### 3. 选择数据通讯的方向
+
+![image-20241025041044132](assets/image-20241025041044132.png)
+
+2线只读很少使用, 在这种模式下,虽然接了两根线,但实际上从机只使用了接收数据线,不返回数据,一般只用于主机向从机广播数据. 单线发送是一种少接一根线,来实现类似i2c的双向半双工模式
+
+##### 4. 数据宽度, 极性, 相位和比特位传输顺序
+
+![image-20241025053136000](assets/image-20241025053136000.png)
+
+这个图可能有问题,应该为LSB,而不是MSB
+
+##### 5. 设置波特率
+
+![image-20241025054546973](assets/image-20241025054546973.png)
+
+##### 6. NSS的配置方式
+
+![image-20241025055248446](assets/image-20241025055248446.png)
+
+比特位的传输顺序
+
+```c
+void app_spi1_module_init()
+{
+    SPI_InitTypeDef spi_init;
+    
+    // #2. 对SPI本身进行初始化
+    RCC_APB2PeriphClockCMD(RCC_APB2Periph_SPI1, ENABLE);
+    
+    spi_init.SPI_Mode = SPI_Mode_Master;
+    spi_init.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
+    spi_init.SPI_DataSize = SPI_DataSize_8b;
+    spi_init.SPI_CPOL = SPI_CPOL_High;
+    spi_init.SPI_CPHA = SPI_CPHA_2Edge;
+    spi_init.SPI_FirstBit = SPI_FirstBit_LSB;
+    
+}
+```
+
+
+
