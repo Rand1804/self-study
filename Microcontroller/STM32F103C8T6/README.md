@@ -2059,6 +2059,7 @@ void app_spi1_gpio_init()
     RCC_APB2PeriphClockCMD(RCC_APB2Periph_AFIO, ENABLE);
     GPIO_PinRemapConfig(GPIO_Remap_SPI1, ENABLE);
     
+    
     // PB3 SCK_AF_PP 2MHz
     RCC_APB2PeriphClockCMD(RCC_APB2Periph_GPIOB, ENABLE);
     RCC_APB2PeriphClockCMD(RCC_APB2Periph_GPIOA, ENABLE);
@@ -2080,10 +2081,15 @@ void app_spi1_gpio_init()
     GPIO_Init(GPIOB, &gpio_init);
     
     // PA15 普通IO Out_PP 2MHz
+    // 由于PA15默认作为JTDI使用,所以不能直接作为普通io,需要进行重映射
+    GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
+    
     gpio_init.GPIO_Pin = GPIO_Pin_15;
     gpio_init.GPIO_Mode = GPIO_Mode_Out_PP;
     gpio_init.GPIO_Speed = GPIO_Speed_2MHz;
     GPIO_Init(GPIOA, &gpio_init);
+    
+	GPIO_WriteBit(SPIO_A, GPIO_Pin_15, Bit_Set);    
     
 }
 ```
@@ -2122,7 +2128,11 @@ void app_spi1_gpio_init()
 
 ![image-20241025055248446](assets/image-20241025055248446.png)
 
+![image-20241027220007824](assets/image-20241027220007824.png)
+
 比特位的传输顺序
+
+##### 7. SPI模块初始化代码
 
 ```c
 void app_spi1_module_init()
@@ -2135,12 +2145,572 @@ void app_spi1_module_init()
     spi_init.SPI_Mode = SPI_Mode_Master;
     spi_init.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
     spi_init.SPI_DataSize = SPI_DataSize_8b;
-    spi_init.SPI_CPOL = SPI_CPOL_High;
-    spi_init.SPI_CPHA = SPI_CPHA_2Edge;
+    spi_init.SPI_CPOL = SPI_CPOL_Low;
+    spi_init.SPI_CPHA = SPI_CPHA_1Edge;
     spi_init.SPI_FirstBit = SPI_FirstBit_LSB;
+    spi_init.SPI_BaudRatePrescaler = SPI_BaudRatePrescale_64;
+    spi_init.SPI_NSS = SPI_NSS_Soft;
     
+    SPI_Init(SPI1, &spi_init);
+    
+    SPI_NSSInternalSoftwareConfig(SPI1, SPI_NSSInternalSoft_Set);
 }
 ```
+
+### SPI数据收发
+
+##### 1. SPI数据收发的特点
+
+![image-20241027220651029](assets/image-20241027220651029.png)
+
+##### 2.声明数据收发的编程接口
+
+![image-20241027221223374](assets/image-20241027221223374.png)
+
+##### 3. SPI数据收发过程简介
+
+![image-20241027222416957](assets/image-20241027222416957.png)
+
+![image-20241027223046882](assets/image-20241027223046882.png)
+
+##### 4. SPI收发代码
+
+```c
+void App_SPI_MasterTransmitReceive(SPITypeDef *spix, const uint8_t *p_data_tx, uint8_t *p_data_rx, uint16_t size)
+{
+    // #1. 闭合总开关
+    SPI_Cmd(spix, ENABLE);
+    // #2. 发送第一个字节
+    // I2S是传输音频的总线,因为这个接口和SPI很相似,所以就设计在一起了
+    // 因为发送有发送缓冲和移位寄存器,所以先发送一个字节利用缓冲,实现更高效的发送
+    SPI_I2S_SendData(SPIx, p_data_tx[0]);
+    
+    for (uint16_t i = 0; i < size - 1; i++) {
+        // 发送一个字节
+        while (SPI_I2S_GetFlagStatus(spix, SPI_I2S_FLAG_TXE) == RESET)
+            ;
+        SPI_I2S_SendData(spix, p_data_tx[i+1]);
+        while (SPI_I2S_GetFlagStatus(spix, SPI_I2S_FLAG_RXNE) == RESET)
+            ;
+        p_data_rx[i] = SPI_I2S_ReceiveData(spix);
+    }
+    // #4. 读出最后一个字节
+    while(SPI_I2S_GetFlag_Status(spix, SPI_I2S_FLAG_RXNE) == RESET)
+        ;
+    p_data_rx[size-1] = SPI_I2S_ReceiveData(spix);
+    // #5. 断开总开关
+    SPI_Cmd(spix, DISABLE);
+}
+```
+
+### W25Q64实验
+
+##### 1. W25Q64的存储结构
+
+![image-20241027230750396](assets/image-20241027230750396.png)
+
+![image-20241027231200526](assets/image-20241027231200526.png)
+
+##### 2. 使用W25Q64存储数据
+
+![image-20241027231643318](assets/image-20241027231643318.png)
+
+**擦除**最小以扇区为单位(50ms左右) ,**编程**最大以页为单位(10ms左右)
+
+**写使能**:修改flash中的任何内容都需要先打开锁
+
+**等待空闲**:等待SR1寄存器中的BUSY标志位,从1变为0
+
+![image-20241027233204038](assets/image-20241027233204038.png)
+
+![image-20241027233131012](assets/image-20241027233131012.png)
+
+![image-20241027233732969](assets/image-20241027233732969.png)
+
+![image-20241028012858031](assets/image-20241028012858031.png)
+
+###### 示例代码
+
+```c
+void App_W25Q64_SaveByte(uint8_t byte)
+{
+    uint8_t tx_buff[10];
+    uint8_t rx_buff[10];
+    
+    // 在操作的开始等待空闲效率更高更安全
+    // #6. 等待空闲
+    while(1) {
+        // 这时收到的rx_buff[0]是无效数据，因为从机还在处理命令
+        tx_buff[0] = 0x05;
+        // dummy byte
+        tx_buff[1] = 0xff;
+        GPIO_WriteBit(GPIOA, GPIO_Pin_15, Bit_RESET);
+        App_SPI_MasterTransmitReceive(SPI1, tx_buff, rx_buff, 2);
+        GPIO_WriteBit(GPIOA, GPIO_Pin_15, Bit_SET);
+        
+        if (rx_buff[1] & 0x01) == 0)
+            break;
+    }
+    
+    
+    
+    
+    // #1. 写使能
+    tx_buff[0] = 0x06;
+    // NSS = 0
+    GPIO_WriteBit(GPIOA, GPIO_Pin_15, Bit_RESET);
+    App_SPI_MasterTransmitReceive(SPI1, tx_buff, rx_buff, 1);
+    GPIO_WriteBit(GPIOA, GPIO_Pin_15, Bit_SET);
+    
+    // #2. 扇区擦除
+    tx_buff[0] = 0x20;
+    tx_buff[1] = 0x00;
+    tx_buff[2] = 0x00;
+    tx_buff[3] = 0x00;
+    GPIO_WriteBit(GPIOA, GPIO_Pin_15, Bit_RESET);
+    App_SPI_MasterTransmitReceive(SPI1, tx_buff, rx_buff, 4);
+    GPIO_WriteBit(GPIOA, GPIO_Pin_15, Bit_SET);
+    
+    // #3. 等待空闲
+    while(1) {
+        // 这时收到的rx_buff[0]是无效数据，因为从机还在处理命令
+        tx_buff[0] = 0x05;
+        // dummy byte
+        tx_buff[1] = 0xff;
+        GPIO_WriteBit(GPIOA, GPIO_Pin_15, Bit_RESET);
+        App_SPI_MasterTransmitReceive(SPI1, tx_buff, rx_buff, 2);
+        GPIO_WriteBit(GPIOA, GPIO_Pin_15, Bit_SET);
+        
+        if (rx_buff[1] & 0x01) == 0)
+            break;
+    }
+    
+    // #4. 写使能
+    tx_buff[0] = 0x06;
+    // NSS = 0
+    GPIO_WriteBit(GPIOA, GPIO_Pin_15, Bit_RESET);
+    App_SPI_MasterTransmitReceive(SPI1, tx_buff, rx_buff, 1);
+    GPIO_WriteBit(GPIOA, GPIO_Pin_15, Bit_SET);
+    
+    
+    // #5. 页编程
+    tx_buff[0] = 0x02;
+    tx_buff[1] = 0x00;
+    tx_buff[2] = 0x00;
+    tx_buff[3] = 0x00;
+    tx_buff[4] = byte;
+    GPIO_WriteBit(GPIOA, GPIO_Pin_15, Bit_RESET);
+    App_SPI_MasterTransmitReceive(SPI1, tx_buff, rx_buff, 5);
+    GPIO_WriteBit(GPIOA, GPIO_Pin_15, Bit_SET);
+    
+
+}
+```
+
+##### 3. 使用W25Q64读取数据
+
+![image-20241028014119908](assets/image-20241028014119908.png)
+
+```c
+uint8_t App_W25Q64_LoadByte(void)
+{
+    uint8_t buff[5];    // 使用单个缓冲区
+    
+    buff[0] = 0x03;     // 读取命令
+    buff[1] = 0x00;     // 地址高字节
+    buff[2] = 0x00;     // 地址中字节
+    buff[3] = 0x00;     // 地址低字节
+    buff[4] = 0xff;     // dummy byte用于读取数据
+    
+    GPIO_WriteBit(GPIOA, GPIO_Pin_15, Bit_RESET);
+    App_SPI_MasterTransmitReceive(SPI1, buff, buff, 5);
+    GPIO_WriteBit(GPIOA, GPIO_Pin_15, Bit_SET);
+    
+    return buff[4];     // 返回接收到的数据
+}
+```
+
+
+
+### 时钟树[重置版]
+
+![image-20241028015834168](assets/image-20241028015834168.png)
+
+![image-20241028020015825](assets/image-20241028020015825.png)
+
+
+
+
+
+![image-20241028020440730](assets/image-20241028020440730.png)
+
+![image-20241028021414579](assets/image-20241028021414579.png)
+
+##### 1. 时钟配置编程
+
+![image-20241028022231839](assets/image-20241028022231839.png)
+
+![image-20241028023343945](assets/image-20241028023343945.png)
+
+![image-20241028030930217](assets/image-20241028030930217.png)
+
+```c
+void App_SystemClock_Init()
+{
+    // #1. 开启HSE
+    RCC_HSEConfig(RCC_HSE_ON);
+    // 等待外部时钟稳定
+    while (RCC_GetFlagStatus(RCC_FLAG_HSERDY) == RESET)
+        ;
+    
+    // #2. 配置并启动锁相环
+    RCC_PLLConfig(RCC_PLLSource_HSE_Div1, RCC_)PLLMul_9); // HSE * 9
+    RCC_PLLCmd(ENABLE);
+    // 等待锁相环频率稳定
+    while (RCC_GetFlagStatus(RCC_FLAG_PLLRDY) == RESET)
+        ;
+    
+    // #3. 配置AHB分频器, APB1分频器, APB2分频器
+    RCC_HCLKConfig(RCC_SYSCLK_Div1);
+    RCC_PCLK1Config(RCC_HCLK_Div2);
+    RCC_PCLK2Config(RCC_HCLK_Div1);
+    
+    // #4. 选择SYSCLK的来源
+    // SYSCLK 来自锁相环
+    RCC_SYSCLKConfig(RCC_SYSCLKSource_PLLCLK);
+    // 等待切换完成
+    while (RCC_GetSYSCLKSource() != 0x08)
+        ;
+}
+```
+
+##### 2. Flash模块指令预取
+
+![image-20241028031251174](assets/image-20241028031251174.png)
+
+```c
+// 只能在时钟频率小于等于8M时调用
+void app_flash_prefetch()
+{
+    // 开启Flash指令预取
+    FLASH_PrefetchBufferCmd(ENABLE);
+    // 设置Flash访问延迟
+    FLASH_SetLatency(FLASH_Latency_2);
+}
+```
+
+##### 3. 片上外设的时钟开启和关闭
+
+![image-20241028032131766](assets/image-20241028032131766.png)
+
+### 定时器-时基单元
+
+##### 1. 定时器简介
+
+![image-20241028032658674](assets/image-20241028032658674.png)
+
+![image-20241028033320676](assets/image-20241028033320676.png)
+
+##### 2. 时基单元的基本结构
+
+![image-20241028033859997](assets/image-20241028033859997.png)
+
+![image-20241028034341318](assets/image-20241028034341318.png)
+
+##### 3. 上计数, 下计数和中心对齐
+
+![image-20241028034543486](assets/image-20241028034543486.png)
+
+##### 4. 时钟来源
+
+![image-20241028035546759](assets/image-20241028035546759.png)
+
+![image-20241028035308272](assets/image-20241028035308272.png)
+
+
+
+##### 5. 寄存器预加载
+
+![image-20241028035910103](assets/image-20241028035910103.png)
+
+如果没有**影子寄存器**, 则可能出现定时器跑飞的可能
+
+![image-20241028040119366](assets/image-20241028040119366.png)
+
+![image-20241028040400082](assets/image-20241028040400082.png)
+
+### 定时器-自制延时函数
+
+##### 1. 获取单片机的当前时间
+
+![image-20241028042938037](assets/image-20241028042938037.png)
+
+##### 2. 实现延迟函数
+
+![image-20241028043908179](assets/image-20241028043908179.png)
+
+![image-20241028045026690](assets/image-20241028045026690.png)
+
+```c
+// 记录当前的时间,单位ms
+volatile uint32_t currentTick = 0;
+
+void app_delay(uint32_t ms)
+{
+    uint32_t expire_time = currentTick + ms;
+    while (currentTick < expire_time)
+        ;
+}
+
+// 初始化时基单元
+void app_tim3_timebase_init()
+{
+    TIM_TimeBaseInitTypeDef tim_base_init;
+    
+    // #1. 开启定时器3的时钟
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+    
+    // #2. 配置时基单元的参数
+    tim_base_init.TIM_Prescaler = 71;
+    tim_base_init.TIM_Period = 999;
+    tim_base_init.TIM_CounterMode = TIM_CounterMode_Up;
+    tim_base_init.TIM_RepetitionCounter = 0;
+    
+    TIM_TimeBaseInit(TIM3, &TIM_TimeBaseInitStruct);
+    
+    // #3. 闭合时时基单元的开关
+    TIM_Cmd(TIM3, ENABLE);
+}
+
+
+// 使能Update中断
+void app_tim3_interrupt_enable()
+{
+    // 中断优先级分组初始化,应该写在main函数开头
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+    
+    // 使能Update中断
+    TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);
+    
+    // 配置NVIC模块
+    NVIC_InitTypeDef nvic_init;
+    
+    nvic_init.NVIC_IRQChannel = TIM3_IRQn;
+    nvic_init.NVIC_IRQChannelPreemptionPriority = 0;
+    nvic_init.NVIC_IRQChannelSubPriority = 0;
+    nvic_init.NVIC_IRQChannelCmd = ENABLE;
+    
+    NVIC_Init(&nvic_init);
+}
+
+void TIM3_IRQHandler()
+{
+    if (TIM_GetFlagStatus(TIM3, TIM_FLAG_Update) == SET) {
+        TIM_ClearFlag(TIM3, TIM_FLAG_Update);
+        currentTick++;
+    }
+}
+```
+
+### 定时器-旧版补充
+
+##### 1. 定时器分类
+
+![image-20241028052230162](assets/image-20241028052230162.png)
+
+**通用定时器**: 在基本定时器的基础上增加**输入捕获功能**和输出**比较功能**
+
+**高级定时器**: 在通用定时器的基础上增加**触摸式控制器**和**高级定时器的输出控制功能**
+
+下面对STM32的三种定时器进行对比：
+
+1. 基本定时器（TIM6、TIM7）
+```c
+特点：
+- 最简单的定时器
+- 只能向上计数
+- 16位计数器
+- 仅有1个预分频器
+- 可以触发DAC转换
+- 只能产生更新中断
+
+主要用途：
+- 简单定时
+- DAC触发源
+- 实现延时
+- 产生周期性中断
+```
+
+2. 通用定时器（TIM2、TIM3、TIM4、TIM5）
+```c
+特点：
+- 16位/32位计数器(TIM2/5是32位)
+- 向上、向下、向上向下计数模式
+- 4个独立通道
+- 可以进行PWM输出
+- 输入捕获功能
+- 编码器接口模式
+- 多种中断源
+
+主要用途：
+- PWM输出控制（如舵机、电机）
+- 输入捕获（测量脉冲宽度、频率）
+- 编码器接口（读取旋转编码器）
+- 定时中断
+```
+
+3. 高级定时器（TIM1、TIM8）
+```c
+特点：
+- 包含通用定时器全部功能
+- 更复杂的PWM控制功能
+- 死区时间控制
+- 互补输出
+- 刹车输入
+- 重复计数器
+- 更灵活的触发控制
+
+主要用途：
+- 三相电机控制
+- H桥驱动
+- 数字电源控制
+- 需要死区控制的场合
+- 需要互补输出的应用
+```
+
+应用场景示例：
+
+1. 基本定时器示例 - 简单定时中断：
+```c
+void TIM6_Init(void)
+{
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+    
+    // 使能时钟
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, ENABLE);
+    
+    // 配置时基单元
+    TIM_TimeBaseStructure.TIM_Period = 1000-1;         // 1ms定时
+    TIM_TimeBaseStructure.TIM_Prescaler = 72-1;        // 72分频
+    TIM_TimeBaseStructure.TIM_ClockDivision = 0;
+    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
+    
+    // 使能中断
+    TIM_ITConfig(TIM6, TIM_IT_Update, ENABLE);
+    
+    // 启动定时器
+    TIM_Cmd(TIM6, ENABLE);
+}
+```
+
+2. 通用定时器示例 - PWM输出：
+```c
+void TIM3_PWM_Init(void)
+{
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+    TIM_OCInitTypeDef TIM_OCInitStructure;
+    
+    // 使能时钟
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+    
+    // 配置时基单元
+    TIM_TimeBaseStructure.TIM_Period = 20000-1;        // 20ms周期
+    TIM_TimeBaseStructure.TIM_Prescaler = 72-1;
+    TIM_TimeBaseStructure.TIM_ClockDivision = 0;
+    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
+    
+    // 配置PWM模式
+    TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+    TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+    TIM_OCInitStructure.TIM_Pulse = 1500;              // 1.5ms脉宽
+    TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
+    TIM_OC1Init(TIM3, &TIM_OCInitStructure);
+    
+    TIM_OC1PreloadConfig(TIM3, TIM_OCPreload_Enable);
+    
+    // 启动定时器
+    TIM_Cmd(TIM3, ENABLE);
+}
+```
+
+3. 高级定时器示例 - 互补输出：
+```c
+void TIM1_Complementary_Init(void)
+{
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+    TIM_OCInitTypeDef TIM_OCInitStructure;
+    TIM_BDTRInitTypeDef TIM_BDTRInitStructure;
+    
+    // 使能时钟
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
+    
+    // 配置时基单元
+    TIM_TimeBaseStructure.TIM_Period = 1000-1;
+    TIM_TimeBaseStructure.TIM_Prescaler = 72-1;
+    TIM_TimeBaseStructure.TIM_ClockDivision = 0;
+    TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    TIM_TimeBaseInit(TIM1, &TIM_TimeBaseStructure);
+    
+    // 配置PWM
+    TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
+    TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+    TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Enable;  // 互补输出使能
+    TIM_OCInitStructure.TIM_Pulse = 500;
+    TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
+    TIM_OCInitStructure.TIM_OCNPolarity = TIM_OCNPolarity_High;
+    TIM_OC1Init(TIM1, &TIM_OCInitStructure);
+    
+    // 配置死区和刹车
+    TIM_BDTRInitStructure.TIM_OSSRState = TIM_OSSRState_Enable;
+    TIM_BDTRInitStructure.TIM_OSSIState = TIM_OSSIState_Enable;
+    TIM_BDTRInitStructure.TIM_LOCKLevel = TIM_LOCKLevel_1;
+    TIM_BDTRInitStructure.TIM_DeadTime = 72;           // 1us死区时间
+    TIM_BDTRInitStructure.TIM_Break = TIM_Break_Enable;
+    TIM_BDTRInitStructure.TIM_BreakPolarity = TIM_BreakPolarity_High;
+    TIM_BDTRInitStructure.TIM_AutomaticOutput = TIM_AutomaticOutput_Enable;
+    TIM_BDTRConfig(TIM1, &TIM_BDTRInitStructure);
+    
+    // 启动定时器
+    TIM_Cmd(TIM1, ENABLE);
+    // 主输出使能
+    TIM_CtrlPWMOutputs(TIM1, ENABLE);
+}
+```
+
+选择建议：
+1. 简单定时/触发DAC -> 使用基本定时器
+2. PWM输出/输入捕获/编码器 -> 使用通用定时器
+3. 电机控制/需要死区保护 -> 使用高级定时器
+
+##### 2. 时基单元
+
+![image-20241028053357348](assets/image-20241028053357348.png)
+
+##### 3. 时钟来源
+
+![image-20241028053910506](assets/image-20241028053910506.png)
+
+![image-20241028054056752](assets/image-20241028054056752.png)
+
+##### 4. 分频计数器
+
+![image-20241028065104961](assets/image-20241028065104961.png)
+
+![image-20241028065328185](assets/image-20241028065328185.png)
+
+### ADC模块的结构框图
+
+##### 1. ADC的多路复用
+
+![image-20241028073139955](assets/image-20241028073139955.png)
+
+![image-20241028074200455](assets/image-20241028074200455.png)
+
+##### 2. 常规序列
+
+##### 3. 注入序列
 
 
 
