@@ -2710,7 +2710,165 @@ void TIM1_Complementary_Init(void)
 
 ##### 2. 常规序列
 
+![image-20241028215658219](assets/image-20241028215658219.png)
+
+![image-20241028215845507](assets/image-20241028215845507.png)
+
+每出现一个上升沿则执行一次常规序列
+
+![image-20241028220542065](assets/image-20241028220542065.png)
+
+黄色代表开关闭合的时间
+
+![image-20241028220820155](assets/image-20241028220820155.png)
+
 ##### 3. 注入序列
 
+![image-20241028221347198](assets/image-20241028221347198.png)
 
+![image-20241028221746213](assets/image-20241028221746213.png)
+
+### ADC定时器触发
+
+![image-20241028222312415](assets/image-20241028222312415.png)
+
+![image-20241028222623587](assets/image-20241028222623587.png)
+
+##### 配置串口
+
+![image-20241028224001507](assets/image-20241028224001507.png)
+
+##### 配置定时器
+
+![image-20241028230034213](assets/image-20241028230034213.png)
+
+##### 配置ADC
+
+![image-20241028233324608](assets/image-20241028233324608.png)
+
+![image-20241029012708286](assets/image-20241029012708286.png)
+
+![image-20241029013056242](assets/image-20241029013056242.png)
+
+![image-20241029014004920](assets/image-20241029014004920.png)
+
+```c
+void app_usart1_init()
+{
+    // #1. 初始化IO引脚, PA9
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+    GPIO_InitStruct.GPIO_Pin = GPIO_Pin_9;
+    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF_PP;
+    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    // #2. 开启USART1的时钟
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
+
+    // #3. 配置串口的参数
+    USART_InitTypeDef USART_InitStruct = {0};
+
+    USART_InitStruct.USART_BaudRate = 115200;
+    USART_InitStruct.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    USART_InitStruct.USART_Mode = USART_Mode_Tx;
+    USART_InitStruct.USART_Parity = USART_Parity_No;
+    USART_InitStruct.USART_StopBits = USART_StopBits_1;
+    USART_InitStruct.USART_WordLength = USART_WordLength_8b;
+    USART_Init(USART1, &USART_InitStruct);
+
+    // #4. 使能串口的总开关
+    USART_Cmd(USART1, ENABLE);
+}
+
+
+void app_tim1_init()
+{
+    // #1. 使能TIM1的时钟
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
+    
+    // #2. 配置TIM1的时基单元
+    TIM_TimeBaseInitTypeDef tim_timebase_init = {0};
+    
+    tim_timebase_init.TIM_CounterMode = TIM_CounterMode_Up;
+    tim_timebase_init.TIM_Period = 1000 - 1;
+    tim_timebase_init.Prescaler = 72 - 1;
+    tim_timebase_init.TIM_RepetitionCounter = 0;
+    
+    TIM_TimeBaseInit(TIM1, &tim_timebase_init);
+    
+    // #3. TRGO: Update
+    TIM_SelectOutputTrigger(TIM1, TIM_TRGOSource_Update);
+    
+    // #4. 开启定时器1的总开关
+    TIM_Cmd(TIM1, ENABLE);
+}
+
+
+void app_adc_init()
+{
+    // #1. 初始化PA0
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+    GPIO_InitStruct.GPIO_Pin = GPIO_Pin_0;
+    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AIN;
+    GPIO_Init(GPIOA, &GPIO_InitStruct);
+    
+    // #2. 配置ADC模块的时钟
+    RCC_ADCCLKConfig(RCC_PCLK_Div6);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
+    
+    // #3. 配置ADC的基本参数
+    ADC_InitTypeDef adc_init = {0};
+    
+    adc_init.ADC_ContinuousConvMode = DISABLE;
+    adc_init.ADC_DataAlign = ADC_DataAlign_Right;
+    adc_init.ADC_ExternalTrigConv = ADC_ExternalTrigConv_None;
+    adc_init.ADC_Mode = ADC_Mode_Independent;
+    adc_init.ADC_NbrOfChannel = 1;
+    adc_init.ADC_ScanConvMode = DISABLE;
+    ADC_Init(ADC1, &adc_init);
+    
+    // #4. 配置注入序列的额外参数
+    ADC_InjectedSequencerLengthConfig(ADC1, 1);
+    ADC_ExternalTrigInjectedConvConfig(ADC1, ADC_ExternalTrigInjecConv_T1_TRGO);
+    ADC_ExternalTrigInjectedConvCmd(ADC1, ENABLE);
+    
+    ADC_InjectedChannelConfig(ADC1, ADC_Channel_0, 1, ADC_SampleTime_13Cycles5);
+    
+	// #5.闭合总开关
+    ADC_Cmd(ADC1, ENABLE);
+}
+
+int main()
+{
+    app_usart1_init();
+    app_tim1_init();
+    app_adc_init();
+    
+    while (1) {
+        // #1. 等待注入序列转换完成
+        while (ADC_GetFlagStatus(ADC1, ADC_FLAG_JEOC) == RESET)
+            ;
+        
+        // #2. 读取转换的结果
+        uint16_t jdr1 = ADC_GetInjectedConversionValue(ADC1, ADC_InjectedChannel_1);
+        
+        // #3. 清除JEOC标志位
+        ADC_ClearFlag(ADC1, ADC_FLAG_JEOC);
+        
+        // #4. 把结果转换成电压(jdr值乘ADC的分辨率)
+        float voltage = jdr1 * (3.3f / 4095);
+        
+        // #5. 通过串口把结果发送出去
+        My_USART_Printf(USART1, "%.3f\n", voltage);
+    }
+}
+```
+
+### ADC扫描模式
 
