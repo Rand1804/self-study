@@ -2392,10 +2392,10 @@ void App_SystemClock_Init()
 // 只能在时钟频率小于等于8M时调用
 void app_flash_prefetch()
 {
-    // 开启Flash指令预取
-    FLASH_PrefetchBufferCmd(ENABLE);
     // 设置Flash访问延迟
     FLASH_SetLatency(FLASH_Latency_2);
+    // 开启Flash指令预取
+    FLASH_PrefetchBufferCmd(ENABLE);
 }
 ```
 
