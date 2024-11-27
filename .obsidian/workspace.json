@@ -34,9 +34,23 @@
               "icon": "lucide-file",
               "title": "motor_control_begin"
             }
+          },
+          {
+            "id": "a3a0bb680851235d",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Operating_System/Nanjing University /jyy.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "jyy"
+            }
           }
         ],
-        "currentTab": 1
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -177,8 +191,10 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "501b9f34c9589261",
+  "active": "a3a0bb680851235d",
   "lastOpenFiles": [
+    "README.md",
+    "Untitled.canvas",
     "Motor/assets/Pasted image 20241008045322.png",
     "Motor/assets/Pasted image 20241008044528.png",
     "Motor/assets/Pasted image 20241008034535.png",
@@ -189,7 +205,6 @@
     "Motor/assets/Pasted image 20241007230324.png",
     "Motor/assets/Pasted image 20241007230308.png",
     "Motor/assets/Pasted image 20241007222118.png",
-    "Motor/assets/Pasted image 20241007222018.png",
     "Motor/motor_control_begin.md",
     "Motor/Motor/assets",
     "Motor/Motor",
@@ -216,8 +231,6 @@
     "Linux/Linux_Driver/Linux_Device_Drivers.md",
     "Operating_System/jyy_yyds/jyy.md",
     "C++/南方科技大学C++/README.md",
-    "Untitled.canvas",
-    "README.md",
     "2024-07-08.md",
     "Linux/Linux.md",
     "Microcontroller/README.md",
