@@ -210,7 +210,8 @@ CFLAGS = -mcpu=cortex-m4 \        # Specify Cortex-M4 CPU
 
 LDFLAGS = -Wl,--gc-sections \     # Remove unused sections
           -specs=nano.specs \      # Use newlib-nano
-          -specs=nosys.specs      # No system calls
+          -specs=nosys.specs \    # No system calls
+    	  -u _printf_float 		  # Enable printf float support
 
 The read speed improved by changing #define CONFIG_LITTLEFS_CACHE_SIZE from 128 to 512
 ```
