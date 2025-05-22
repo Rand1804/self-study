@@ -21,6 +21,89 @@ pxTCB->xEventListItem 只可能在`xPendingReadyList`中， 在`xTaskResume`中�
 
 ## queue.c
 
-`xQueueCreate`: 初始化队列。首先给队列结构本身分配空间，然后给存储区分配需求字节+1字节（作为队尾标志，使用环形缓冲来实现元素存储），然后初始化队列结构体，包括读写索引，等待读或写任务链表等。
 
-`xQueueSend`: 停止任务调度，将任务列表锁住标志置位，不让中断获取。判断队列是否满了，以及是否等待
+### `prvUnlockQueue`
+队列发送和接收锁计数减一，如果减一之后依然大于-1，则说明在队列锁住的时候，有从中断中操作过队列，添加或减少数据。将锁置为-1，然后将队列结构中的头部等待移除，加入准备任务队列。如果任务调度被暂停，则加入代表准备任务事件链表
+
+### `xQueueCreate`
+初始化队列。首先给队列结构本身分配空间，然后给存储区分配需求字节+1字节（作为队尾标志，使用环形缓冲来实现元素存储），然后初始化队列结构体，包括读写索引，等待读或写任务链表等。
+
+### `xQueueSend`
+停止任务调度，将任务列表锁住标志置位（仅阻止中断访问事件链表）。如果队列满了，且可以等待，则将任务加入等待队列`xTasksWaitingToSend`，该任务可以被两种情况唤醒。1.超时 2. 队列里有空位了。然后关闭中断，解锁队列，释放控制权，进入阻塞。当再次被唤醒时，说明队列中出现了空位或者超时。然后恢复任务调度关闭和队列锁住状态。屏蔽中断，判断当前队列是否满，如果满返回错误，非满则将数据复制到队列中，并且将发送队列锁加1，解除中断屏蔽。接下来就是退出处理，解锁队列锁，并且恢复任务调度
+
+### `xQueueSendFromISR`
+1. 如果当前队列还有空位，则将数据移入，
+    1. 如果当前队列发送没锁，且该中断中之前没有任务已经唤醒，则将处于接收事件队列头部的任务移动到准备队列中
+    2. 如果当前队列发送被锁，则仅将发送锁加1
+2. 什么都不做，直接返回
+
+
+
+ `xTaskPreviouslyWoken` is a flag used to coordinate task waking across multiple ISR operations. Let me explain its purpose:
+
+1. Purpose of the Flag:
+```c
+signed portBASE_TYPE xTaskPreviouslyWoken // Input parameter indicating if a task was already woken
+```
+- Indicates if a higher priority task was already woken by another operation in the same ISR
+- Used to optimize context switching decisions
+- Shared across multiple ISR operations
+
+2. How it's used in the code:
+```c
+if( !xTaskPreviouslyWoken )  // Only check for tasks to wake if none woken yet    
+{
+    if( !listLIST_IS_EMPTY( &( pxQueue->xTasksWaitingToReceive ) ) )
+    {
+        if( xTaskRemoveFromEventList( &( pxQueue->xTasksWaitingToReceive ) ) != pdFALSE )
+        {
+            return pdTRUE;  // Indicates a higher priority task was woken
+        }
+    }
+}
+```
+
+3. Typical Usage Pattern:
+```c
+void ISR_Handler(void)
+{
+    signed portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
+
+    // First queue operation
+    xHigherPriorityTaskWoken = xQueueSendFromISR(queue1, &data1, xHigherPriorityTaskWoken);
+
+    // Second queue operation
+    xHigherPriorityTaskWoken = xQueueSendFromISR(queue2, &data2, xHigherPriorityTaskWoken);
+
+    // If any operation woke a higher priority task, request context switch
+    if(xHigherPriorityTaskWoken)
+    {
+        // Trigger context switch
+        portYIELD_FROM_ISR();
+    }
+}
+```
+
+The key points about `xTaskPreviouslyWoken`:
+1. It's shared across multiple ISR operations
+2. Once TRUE, stays TRUE for the rest of the ISR
+3. Used to decide if context switch is needed after ISR
+4. Helps optimize by preventing unnecessary task checks
+5. Ensures only one high-priority task wake-up is processed
+
+
+### `xQueueReceive`
+标识位`xRxLock`：
+1. 在`xQueueReceive`中读取数据之后加1
+2. 在`prvUnlockQueue`中减1，之后并判断是否大于-1，如果大于-1则赋值为-1，然后唤醒一个在`xTasksWaitingToSend`中的头任务
+3. `xQueueReceiveFromISR`有空位且队列当前被锁，则仅将`xRxLock`标识位加1
+标识位`xTxLock`：
+1. 在`xQueueSend`中写入数据之后加1
+2. 在`prvUnlockQueue`中减1，之后并判断是否大于-1，如果大于-1则赋值为-1，然后唤醒一个在`xTasksWaitingToSend`中的头任务
+3. `xQueueReceiveFromISR`有空位且队列当前被锁，则仅将`xRxLock`标识位加1
+
+1. 关闭任务调度，锁住队列，判断队列是否为空。
+	1. 如果为空，则判断是否等待
+		1. 如果等待，则将当前任务的事件元素加入队列等待接收链表。屏蔽中断，解锁队列，恢复调度，然后触发一次`PendSV`中断。被唤醒后恢复之前的状态，停止调度，锁住队列，退出屏蔽中断。
+	主流程：屏蔽中断，判断队列中元素是否大于0，如果大于0，则读出一个元素，接收锁计数加1。
+	最后做一些退出前的恢复工作，取消中断屏蔽，解锁队列，恢复任务调度，根据需要决定是否触发`PendSV`中断
