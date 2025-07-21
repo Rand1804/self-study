@@ -33,6 +33,12 @@ Linear Combination of Column
 
 ### Lecture #2: Elimination with Matrices
 
+##### 矩阵乘法
+
+![image-20250721081222925](./assets/image-20250721081222925.png)
+
+![image-20250721081258454](./assets/image-20250721081258454.png)
+
 ##### 消元法
 
 主元：pivots,其行列式等于主元之积，如果不存在3个主元则是不可逆矩阵
@@ -41,11 +47,118 @@ Linear Combination of Column
 
 矩阵可以使用结合律 Associative Law（即可以移动括号），不能使用交换律
 
-##### 初等矩阵（Elementary matrix) 记作E
+![image-20250721093531796](./assets/image-20250721093531796.png)
+
+矩阵乘以一列得到一列
+
+![image-20250721093625789](./assets/image-20250721093625789.png)
+
+行乘以矩阵得到一行
+
+The given system of linear equations is:
+
+1.  $x + y + z = 2$
+2.  $x + 2y + z = 3$
+3.  $2x + 3y + 2z = 5$
+
+To find the line of solutions, we can use the method of **Gaussian elimination**.
+
+### **1. Augmented Matrix**
+
+First, we'll represent the system of equations as an augmented matrix:
+
+$$
+\begin{pmatrix}
+1 & 1 & 1 & 2 \\
+1 & 2 & 1 & 3 \\
+2 & 3 & 2 & 5
+\end{pmatrix}
+$$
+
+### **2. Row Operations**
+
+Next, we perform row operations to simplify the matrix into row-echelon form.
+
+* **R2 = R2 - R1:** Subtract the first row from the second row.
+
+$$
+\begin{pmatrix}
+1 & 1 & 1 & 2 \\
+0 & 1 & 0 & 1 \\
+2 & 3 & 2 & 5
+\end{pmatrix}
+$$
+
+* **R3 = R3 - 2*R1:** Subtract twice the first row from the third row.
+
+$$
+\begin{pmatrix}
+1 & 1 & 1 & 2 \\
+0 & 1 & 0 & 1 \\
+0 & 1 & 0 & 1
+\end{pmatrix}
+$$
+
+* **R3 = R3 - R2:** Subtract the new second row from the new third row.
+
+$$
+\begin{pmatrix}
+1 & 1 & 1 & 2 \\
+0 & 1 & 0 & 1 \\
+0 & 0 & 0 & 0
+\end{pmatrix}
+$$
+
+### **3. Back Substitution**
+
+Now we can write the simplified system of equations from the row-echelon form of the matrix:
+
+1.  $x + y + z = 2$
+2.  $y = 1$
+
+From the second equation, we have **$y = 1$**.
+
+Substitute $y = 1$ into the first equation:
+
+$x + 1 + z = 2$
+$x + z = 1$
+
+This confirms that there are infinitely many solutions. We can express one variable in terms of another. Let's introduce a parameter, $t$.
+
+Let **$z = t$**.
+Then, from $x + z = 1$, we get **$x = 1 - t$**.
+
+### **4. The Solution: Line L**
+
+The solution to the system of equations is a line, L, which can be expressed in parametric form:
+
+* $x = 1 - t$
+* $y = 1$
+* $z = t$
+
+This can be written in vector form as:
+
+$L(t) = \begin{pmatrix} x \\ y \\ z \end{pmatrix} = \begin{pmatrix} 1 \\ 1 \\ 0 \end{pmatrix} + t \begin{pmatrix} -1 \\ 0 \\ 1 \end{pmatrix}$
+
+This means the line **L** passes through the point **(1, 1, 0)** and is parallel to the direction vector **(-1, 0, 1)**.
+
+##### 初等矩阵（Elementary matrix) 记作E~21
 
 ![image-20250720084402456](./assets/image-20250720084402456.png)
 
+**置换矩阵**(permutation matrix) **P**
+
+行交换
+
+![image-20250721095105956](./assets/image-20250721095105956.png)
+
+列交换：矩阵乘在右边
+
+![image-20250721095319798](./assets/image-20250721095319798.png)
+
 行变化乘在矩阵左边，列变化乘在右边
+
+![image-20250721094549136](./assets/image-20250721094549136.png)
 
 ##### 逆矩阵（Inverses）E^-1
 
