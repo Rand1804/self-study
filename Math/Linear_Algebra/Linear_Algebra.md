@@ -162,4 +162,4 @@ This means the line **L** passes through the point **(1, 1, 0)** and is parallel
 
 ##### 逆矩阵（Inverses）E^-1
 
-![image-20250720084844781](./assets/image-20250720084844781.png)
+![image-20250721095912536](./assets/image-20250721095912536.png)
