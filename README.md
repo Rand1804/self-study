@@ -104,6 +104,10 @@ Somebody has to win, so why not be me?
 
 书籍：
 
+课程：[10-601 Machine Learning Spring 2015](https://www.cs.cmu.edu/~ninamf/courses/601sp15/)
+
+书籍：
+
 
 ### 深度学习
 
