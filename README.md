@@ -141,3 +141,11 @@ Somebody has to win, so why not be me?
 
 第四阶段：更大型的实时软件架构
 书籍：Real-Time Software Design for Embedded Systems — Hassan Gomaa
+
+
+## 产品线架构
+
+书籍：Feature-Oriented Software Product Lines
+
+课程： 
+[SPL01a Introduction to Product Lines - Course on Software Product Lines](https://www.youtube.com/watch?v=7sEHT-WX3ZE&list=PL4hJhdKDPIxha8So7muX2zfNUU8NBoiu3)
