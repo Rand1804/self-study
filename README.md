@@ -102,18 +102,16 @@ Somebody has to win, so why not be me?
 
 课程：[人工智能机器学习](https://www.youtube.com/watch?v=Wrg8lGJdk0M&t=7327s)
 
-书籍：
 
 课程：[10-601 Machine Learning Spring 2015](https://www.cs.cmu.edu/~ninamf/courses/601sp15/)
-
-书籍：
 
 
 ### 深度学习
 
 课程：[機器學習2021. 台湾大学李宏毅](https://www.youtube.com/watch?v=Ye018rCVvOo&list=PLJV_el3uVTsMhtt7_Y6sgTHGHp1Vb2P2J)
 
-书籍：
+
+课程：[CS336: Language Modeling from Scratch Stanford / Spring 2026](https://cs336.stanford.edu/)
 
 
 ## 电机类
@@ -122,11 +120,24 @@ Somebody has to win, so why not be me?
 
 课程: [铁头山羊stm32](https://www.bilibili.com/video/BV11X4y1j7si?spm_id_from=333.788.videopod.episodes&vd_source=0e4de0dd0c9aad54817599a7fef890c7&p=40)
 
-书籍:
-
 
 ### FOC
 
 课程: [FOC 电机控制](https://www.bilibili.com/video/BV1RhyFBTEUe/?spm_id_from=333.1387.favlist.content.click&vd_source=0e4de0dd0c9aad54817599a7fef890c7)
 
-书籍: 
+
+## 现代嵌入式架构
+
+嵌入式基本架构 书籍： Making Embedded Systems — Elecia White
+
+第二阶段：现代嵌入式架构
+视频：Miro Samek：Modern Embedded Systems Programming
+
+书籍：Practical UML Statecharts in C/C++ — Miro Samek
+
+可靠性通讯：
+课程：Stanford CS144：Introduction to Computer Networking
+书籍：TCP/IP Illustrated, Volume 1
+
+第四阶段：更大型的实时软件架构
+书籍：Real-Time Software Design for Embedded Systems — Hassan Gomaa
